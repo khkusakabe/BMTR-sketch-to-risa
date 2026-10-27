@@ -5,3 +5,6 @@ __pycache__/
 # Never commit keys or local settings
 .env
 config.json
+
+# Models written by the MCP server
+out/

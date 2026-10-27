@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sketch-to-risa": {
+      "command": "node",
+      "args": ["mcp/server.js"]
+    }
+  }
+}

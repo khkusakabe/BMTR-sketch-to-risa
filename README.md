@@ -46,6 +46,7 @@ index.html, new-project.html   Model Generator: projects home and New Project
 generate.html, mg/             Project workspace: runs the generators, hands off to the other tools
 Final Models/                  RISA-3D generators (plain JavaScript, browser or Node)
 app/                           Afshin's local app (Python server, Claude agents, .r3d writer)
+mcp/                           MCP server: the generators as tools for Claude Desktop and Claude Code
 prototype/                     Browser tracer: line detection, hand tracing, DXF and spreadsheet export
 truss/                         Olu's Truss to RISA
 models/                        Worked RISA packages (Model 1, Model 3)
@@ -59,6 +60,7 @@ Web Page/                      Chandler's original mockups
 - **Browser tools:** open the live site. No install. To run locally, serve the repo folder with any static server, for example `python -m http.server 8080`, then open http://localhost:8080.
 - **Generators from the command line:** `node "Final Models/moment-frame.js" inputs.json out.r3d`. See the header of each file for its inputs.
 - **Afshin's app:** see [`app/README.md`](app/README.md). It needs Python, a Claude login or API key, and RISA-3D.
+- **From Claude (MCP server):** open the repo in Claude Code, or add `mcp/server.js` to Claude Desktop. Show Claude a sketch and it builds the `.r3d` with the generators, no API key needed. See [`mcp/README.md`](mcp/README.md).
 
 Projects created on the site are saved in your own browser only. The one exception is **Read the sketch**: it sends the plan sheet image straight from your browser to the Anthropic API with your own API key, which is stored in your browser only (`mg/sketch-reader.js`). Claude reads the sketch with the Model Creator nomenclature: pen lines are members, a shaded triangle at a beam end is a fixed connection (otherwise pinned), line over hatch at a base is a fixed base, labels are section sets, the size table assigns shapes (struck sizes are void), and dimension strings give the geometry.
 
