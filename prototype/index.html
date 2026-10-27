@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sketch to RISA</title>
+  <meta name="description" content="Trace a PDF drawing or a hand sketch and export nodes and members for RISA-3D.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1>Sketch to RISA</h1>
+    <label class="btn primary">
+      Open PDF or image
+      <input id="file" type="file" accept="application/pdf,image/*" hidden>
+    </label>
+    <span id="pageCtl" class="pagectl" hidden>
+      Page <input id="pageNum" type="number" min="1" value="1"> of <span id="pageCount">1</span>
+    </span>
+    <span id="status" class="status">Open a drawing to start.</span>
+    <a class="teamlink" href="../team.html">Team notes</a>
+  </header>
+
+  <main class="layout">
+    <aside class="panel tools">
+      <h2>Tools</h2>
+      <div class="modes" role="radiogroup">
+        <button class="mode" data-mode="calibrate" title="Click two points a known distance apart (C)">1. Set scale</button>
+        <button class="mode active" data-mode="draw" title="Click node to node. Shift locks to horizontal or vertical (D)">2. Draw members</button>
+        <button class="mode" data-mode="support" title="Click a node to cycle Pinned, Fixed, Roller, none (S)">3. Supports</button>
+        <button class="mode" data-mode="move" title="Drag a node (M)">Move node</button>
+        <button class="mode" data-mode="delete" title="Click a node or member to remove it (X)">Delete</button>
+      </div>
+
+      <h2 class="sub">Auto-detect</h2>
+      <div class="modes">
+        <button class="mode" data-mode="detect" title="Drag a box around the framing, or click once for the whole sheet (F)">Find lines</button>
+      </div>
+      <label class="field">
+        <span>Ignore lines shorter than <b id="minLenOut">8%</b> of the box</span>
+        <input id="minLen" type="range" min="2" max="30" value="8">
+      </label>
+      <div class="row">
+        <button id="accept" class="btn primary" disabled>Accept</button>
+        <button id="discard" class="btn" disabled>Discard</button>
+      </div>
+
+      <div class="field">
+        <span>Scale</span>
+        <b id="scaleOut">not set</b>
+      </div>
+      <label class="field">
+        <span>View plane</span>
+        <select id="plane">
+          <option value="XY">Elevation (X, Y up)</option>
+          <option value="XZ">Plan (X, Z)</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Round coordinates to</span>
+        <select id="round">
+          <option value="0">no rounding</option>
+          <option value="1" selected>1 in</option>
+          <option value="3">3 in</option>
+          <option value="6">6 in</option>
+          <option value="12">1 ft</option>
+        </select>
+      </label>
+      <label class="field check">
+        <input id="ortho" type="checkbox"> Always lock horizontal or vertical
+      </label>
+
+      <div class="row">
+        <button id="undo" class="btn">Undo</button>
+        <button id="clear" class="btn">Clear model</button>
+      </div>
+      <div class="row">
+        <button id="fit" class="btn">Fit view</button>
+        <button id="dim" class="btn">Fade drawing</button>
+      </div>
+
+      <details class="help">
+        <summary>How to use</summary>
+        <ol>
+          <li>Open a PDF page or a photo of a sketch.</li>
+          <li><b>Set scale:</b> click both ends of a known dimension and type its length, for example <code>24'-6"</code> or <code>7.5</code> (feet).</li>
+          <li><b>Draw members:</b> click node to node. Clicks snap to nearby nodes. Hold Shift to lock horizontal or vertical. Right-click or Esc ends a chain.</li>
+          <li><b>Supports:</b> click a node to cycle its restraint.</li>
+          <li><b>Find lines</b> (optional): drag a box around the framing. Suggested members show dashed. Remove extras with Delete, then Accept.</li>
+          <li>Export: copy the tables into RISA-3D spreadsheets, or import the DXF.</li>
+        </ol>
+        <p>Pan: drag with the right or middle button, or hold Space. Zoom: mouse wheel.</p>
+      </details>
+    </aside>
+
+    <section class="stage">
+      <canvas id="canvas"></canvas>
+      <div id="drop" class="drop">Drop a PDF or image here</div>
+    </section>
+
+    <aside class="panel out">
+      <h2>Model</h2>
+      <p class="counts"><span id="nNodes">0</span> nodes, <span id="nMembers">0</span> members</p>
+
+      <h3>Export to RISA-3D</h3>
+      <div class="row wrap">
+        <button class="btn" data-copy="nodes">Copy nodes</button>
+        <button class="btn" data-copy="members">Copy members</button>
+        <button class="btn" data-copy="supports">Copy supports</button>
+      </div>
+      <div class="row wrap">
+        <button id="dxf" class="btn primary">Download DXF</button>
+        <button id="csv" class="btn">Download CSV</button>
+      </div>
+      <div class="row wrap">
+        <button id="saveJson" class="btn">Save project</button>
+        <label class="btn">Load project<input id="loadJson" type="file" accept=".json,application/json" hidden></label>
+      </div>
+
+      <h3>Nodes</h3>
+      <div class="tablewrap"><table id="nodeTable"></table></div>
+      <h3>Members</h3>
+      <div class="tablewrap"><table id="memberTable"></table></div>
+      <p class="note">This tool helps an engineer build a starting model. Check every coordinate, connection and support in RISA before using results.</p>
+    </aside>
+  </main>
+  <script src="detect.js"></script>
+  <script src="export.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

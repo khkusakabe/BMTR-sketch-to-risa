@@ -7,7 +7,9 @@ description: How the Sketch to RISA web app is built and how to change it safely
 
 Added by: Kei (@khkusakabe)
 
-## Shape of the app
+## Shape of the repo
+The team app (Afshin's) lives at the repo root; see `HOSTING.md`. The first prototype described below lives in `prototype/`, so the paths below are relative to it. `team.html`, `team.json` and `.claude/` stay at the root.
+
 Plain HTML, CSS and JavaScript, no build step, served by GitHub Pages from `main` (every merge goes live).
 
 | File | Owns |
@@ -21,7 +23,7 @@ Plain HTML, CSS and JavaScript, no build step, served by GitHub Pages from `main
 Model: nodes `{id, x, y, support}` in drawing pixels (y down), members `{id, i, j}`, and `ftPerPx` to convert to feet.
 
 ## Run and test
-- `python -m http.server 8080`, then open http://localhost:8080.
+- `python -m http.server 8080`, then open http://localhost:8080/prototype/.
 - `samples/hand-sketch.jpg`: set scale 25' between the first two column bases, then Find lines with one click. Expect 7 lines. Delete the ground line, then Accept gives 9 nodes and 11 members.
 - `samples/portal-frame.svg`: Find lines gives 6 members plus the dimension line.
 - Check the browser console for errors after any change.

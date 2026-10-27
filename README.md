@@ -4,6 +4,8 @@ A browser app that turns a PDF drawing or a photo of a hand sketch into a starti
 
 It runs entirely in the browser. Nothing is uploaded anywhere.
 
+> **Heads-up:** Afshin's app is becoming the team app at the site root. This first prototype now lives in `prototype/` and stays live at https://khkusakabe.github.io/BMTR-sketch-to-risa/prototype/. Hosting steps: [HOSTING.md](HOSTING.md). Team notes: https://khkusakabe.github.io/BMTR-sketch-to-risa/team.html
+
 ## How it works
 
 1. **Open** a PDF page or an image (photo or scan of a sketch).
@@ -26,7 +28,7 @@ It's plain HTML, CSS and JavaScript with no build step. Serve the folder with an
 python -m http.server 8080
 ```
 
-Then open http://localhost:8080.
+Then open http://localhost:8080/prototype/.
 
 ## Deploy
 
@@ -34,7 +36,7 @@ GitHub Pages: Settings > Pages > Deploy from a branch > `main` / root.
 
 ## How line detection works
 
-`detect.js`, plain JavaScript with no libraries:
+`prototype/detect.js`, plain JavaScript with no libraries:
 
 1. Adaptive threshold (Bradley and Roth, 2007) separates ink from paper, even under uneven photo lighting.
 2. Zhang-Suen thinning (1984) reduces strokes to 1 px center lines.
@@ -43,8 +45,8 @@ GitHub Pages: Settings > Pages > Deploy from a branch > `main` / root.
 
 ## Samples
 
-- `samples/portal-frame.svg`: a clean gable frame drawing (40'-0" span).
-- `samples/hand-sketch.jpg`: a two-bay, two-story braced frame drawn like a pencil sketch photo. Regenerate it with `python tools/make_sketch.py samples/hand-sketch.jpg` (needs Pillow).
+- `prototype/samples/portal-frame.svg`: a clean gable frame drawing (40'-0" span).
+- `prototype/samples/hand-sketch.jpg`: a two-bay, two-story braced frame drawn like a pencil sketch photo. Regenerate it from `prototype/` with `python tools/make_sketch.py samples/hand-sketch.jpg` (needs Pillow).
 
 ## Libraries
 

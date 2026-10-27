@@ -2,6 +2,10 @@
 
 Start with the team notes page: https://khkusakabe.github.io/BMTR-sketch-to-risa/team.html (source: `team.html`). It covers what's done, how the code fits together, and the open tasks.
 
+## Hosting the team app
+
+Afshin's app goes at the site root, and the first prototype lives in `prototype/`. Step by step: [HOSTING.md](HOSTING.md).
+
 ## Quick version
 
 1. Send Kei your GitHub username to get a collaborator invite.
@@ -17,12 +21,12 @@ Start with the team notes page: https://khkusakabe.github.io/BMTR-sketch-to-risa
 
 ## Who owns what
 
-- `export.js` (RISA export) has an owner. Coordinate with them before changing it.
-- Line detection is in `detect.js`. The rest of the app is in `app.js`.
+- `prototype/export.js` (RISA export) has an owner. Coordinate with them before changing it.
+- In the prototype, line detection is in `prototype/detect.js` and the rest is in `prototype/app.js`.
 
 ## Ground rules
 
-- Plain HTML, CSS and JavaScript. If you add a library, load a pinned version from cdnjs.
+- The prototype stays plain HTML, CSS and JavaScript. If you add a library to it, load a pinned version from cdnjs.
 - Public sources only. Name the paper or doc a method comes from in a comment.
 - Nothing from your employer: no internal code, templates, standards or project data.
 - The tool assists an engineer and shows its work. Don't describe results as acceptable, approved or compliant.

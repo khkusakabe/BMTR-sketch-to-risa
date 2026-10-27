@@ -54,9 +54,12 @@
 
   <div class="links">
     <a class="primary" href="./">Open the app</a>
+    <a href="prototype/">First prototype</a>
     <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa">GitHub repo</a>
     <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/issues">Open tasks</a>
   </div>
+
+  <div class="card"><b>Heads-up:</b> Afshin's app is becoming the team app, served at the site root. Our first prototype stays live at <a href="prototype/"><code>/prototype/</code></a>, and its line detection (<code>detect.js</code>) and RISA export (<code>export.js</code>) can be reused. Hosting steps are in <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/blob/main/HOSTING.md"><code>HOSTING.md</code></a>.</div>
 
   <h2>The idea</h2>
   <p>Engineers start a lot of models from a marked-up PDF or a quick sketch, then retype every node and member into RISA. This app lets you trace the drawing instead, or have it find the lines for you, and export a starting RISA-3D model. Everything runs in the browser and nothing is uploaded.</p>
@@ -67,7 +70,7 @@
 
   <h2>Try it in a minute</h2>
   <ol class="flow">
-    <li>Download <a href="samples/hand-sketch.jpg">samples/hand-sketch.jpg</a> (a two-bay, two-story braced frame drawn like a phone photo) and open it in the app.</li>
+    <li>Download <a href="prototype/samples/hand-sketch.jpg">prototype/samples/hand-sketch.jpg</a> (a two-bay, two-story braced frame drawn like a phone photo) and open it in the app.</li>
     <li><b>Set scale:</b> click the bottoms of the first two columns and type <code>25'</code>.</li>
     <li><b>Find lines:</b> click once on the drawing. Seven dashed suggestions appear.</li>
     <li><b>Delete</b> the long ground line, then <b>Accept</b>. You get 9 nodes and 11 connected members.</li>
@@ -86,16 +89,16 @@
   </div>
 
   <h2>How it's built</h2>
-  <p>Plain HTML, CSS and JavaScript. No build step, no framework, no server. GitHub Pages serves the repo root, and every push to <code>main</code> goes live within a minute or two.</p>
+  <p>This section describes the first prototype in <code>prototype/</code>. It's plain HTML, CSS and JavaScript, with no build step, no framework and no server. GitHub Pages serves the repo, and every push to <code>main</code> goes live within a minute or two.</p>
   <table>
     <tr><th>File</th><th>What it holds</th><th>Start reading at</th></tr>
-    <tr><td><code>index.html</code></td><td>Layout: tools panel, drawing canvas, model and export panel.</td><td>The <code>.tools</code> aside</td></tr>
-    <tr><td><code>app.js</code></td><td>Model, drawing, mouse and keyboard input, scale, supports, and accepting suggestions.</td><td><code>acceptSuggestions()</code></td></tr>
-    <tr><td><code>export.js</code></td><td>RISA-3D export as pure functions of the model: spreadsheet rows, CSV and DXF. Exposes <code>RisaExport</code>.</td><td>The header comment</td></tr>
-    <tr><td><code>detect.js</code></td><td>Line detection, with no libraries. Exposes <code>LineDetect.detect(canvas, rect, opts)</code>.</td><td><code>detect()</code></td></tr>
-    <tr><td><code>style.css</code></td><td>Light and dark themes from color tokens on <code>:root</code>.</td><td><code>:root</code></td></tr>
-    <tr><td><code>samples/</code></td><td>A clean gable frame (SVG) and a hand-sketch photo (JPG).</td><td></td></tr>
-    <tr><td><code>tools/make_sketch.py</code></td><td>Regenerates the sketch sample. Needs Pillow.</td><td></td></tr>
+    <tr><td><code>prototype/index.html</code></td><td>Layout: tools panel, drawing canvas, model and export panel.</td><td>The <code>.tools</code> aside</td></tr>
+    <tr><td><code>prototype/app.js</code></td><td>Model, drawing, mouse and keyboard input, scale, supports, and accepting suggestions.</td><td><code>acceptSuggestions()</code></td></tr>
+    <tr><td><code>prototype/export.js</code></td><td>RISA-3D export as pure functions of the model: spreadsheet rows, CSV and DXF. Exposes <code>RisaExport</code>.</td><td>The header comment</td></tr>
+    <tr><td><code>prototype/detect.js</code></td><td>Line detection, with no libraries. Exposes <code>LineDetect.detect(canvas, rect, opts)</code>.</td><td><code>detect()</code></td></tr>
+    <tr><td><code>prototype/style.css</code></td><td>Light and dark themes from color tokens on <code>:root</code>.</td><td><code>:root</code></td></tr>
+    <tr><td><code>prototype/samples/</code></td><td>A clean gable frame (SVG) and a hand-sketch photo (JPG).</td><td></td></tr>
+    <tr><td><code>prototype/tools/make_sketch.py</code></td><td>Regenerates the sketch sample. Needs Pillow.</td><td></td></tr>
   </table>
 
   <h3>The model</h3>
