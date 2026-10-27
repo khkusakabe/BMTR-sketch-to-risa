@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch to RISA · How to Use</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#fff;color:#1b1b1b;font-family:Figtree,'Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:1.5}
+a{color:#1b1b1b}a:hover{color:#1f5f9e}
+a:focus-visible{outline:2px solid #1f5f9e;outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:16px 72px;border-bottom:1px solid #d6d6d6}
+header nav{margin-left:auto;display:flex;gap:20px;font-size:14px}
+main{max-width:980px;margin:0 auto;box-sizing:border-box;padding:32px 72px 48px}
+h1{margin:0 0 4px;font-size:30px;font-weight:600}
+.lede{margin:0 0 24px;color:#4a4a4a;max-width:70ch}
+h2{margin:28px 0 10px;font-size:19px;font-weight:600;padding-top:14px;border-top:1px solid #d6d6d6}
+h3{margin:0 0 6px;font-size:16px;font-weight:600}
+ol,ul{margin:0;padding-left:20px}
+li{margin:3px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{border:1px solid #8a8a8a;border-radius:8px;padding:14px 16px}
+.tag{display:inline-block;font-size:12px;font-weight:600;border:1px solid #1b1b1b;border-radius:999px;padding:0 8px;margin-left:6px;vertical-align:2px}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;display:flex;gap:12px;margin:10px 0}
+.steps li::before{content:counter(s);flex:0 0 28px;height:28px;border-radius:50%;background:#1b1b1b;color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+code{font-size:14px;background:#f2f2f2;padding:1px 5px;border-radius:4px}
+.url{font-weight:600;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid #d6d6d6;vertical-align:top}
+th{color:#6b6b6b;font-weight:600;font-size:14px}
+.note{color:#4a4a4a;font-size:14px}
+.box{border:1.5px solid #1b1b1b;border-radius:8px;padding:12px 16px;margin-top:24px}
+@media (max-width:700px){header,main{padding-left:16px;padding-right:16px}.wide{display:block;overflow-x:auto}}
+@page{size:letter;margin:0.45in 0.5in}
+@media print{
+  header nav,.noprint{display:none}
+  header{padding:0 0 6px}
+  main{padding:8px 0 0;max-width:none}
+  body{font-size:9.5pt;line-height:1.35}
+  h1{font-size:18pt}
+  .lede{margin-bottom:8px}
+  h2{font-size:11.5pt;margin:10px 0 6px;padding-top:6px}
+  .grid{grid-template-columns:1fr 1fr;gap:8px}
+  .card{padding:7px 10px}
+  .steps li{margin:4px 0}
+  .steps li::before{flex-basis:18px;height:18px;font-size:9pt}
+  th,td{padding:3px 8px 3px 0}
+  .box{margin-top:10px;padding:7px 12px}
+  code{font-size:8.5pt}
+  h2{break-after:avoid}
+  .card,.box,tr,table{break-inside:avoid}
+  a{text-decoration:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" style="font-size:18px;font-weight:700;text-decoration:none">Model Generator</a>
+  <span style="font-size:14px;color:#6b6b6b">Sketch2Frame</span>
+  <nav><a href="index.html">Projects</a><a href="tools.html">All tools</a><a href="team.html">Team notes</a></nav>
+</header>
+<main>
+  <h1>Sketch to RISA: how to use it</h1>
+  <p class="lede">Turn a framing sketch, a PDF plan or a truss drawing into a starting RISA-3D model, instead of retyping every node and member. Built by team BMTR at the NCSEA Big Build SE Hackathon, 2026.</p>
+  <p>Open it: <span class="url">khkusakabe.github.io/BMTR-sketch-to-risa</span> <span class="note">· nothing to install</span></p>
+
+  <h2>Quick start</h2>
+  <ol class="steps">
+    <li><span><b>New Project.</b> On the Projects page, click New Project. Enter a name and number.</span></li>
+    <li><span><b>Upload the plan.</b> Drop a PDF, PNG or JPG. For a PDF, pick the sheet.</span></li>
+    <li><span><b>Pick the system type:</b> 2D Frame, 2D Truss, 3D Building or 3D Misc Frame. Then click Create Project.</span></li>
+    <li><span><b>Build the model.</b> Fill in or check the inputs, or click <b>Read the sketch</b> to have Claude fill them in from your sheet.</span></li>
+    <li><span><b>Download the <code>.r3d</code></b> and open it in RISA-3D. Check geometry, sections, loads and supports.</span></li>
+  </ol>
+
+  <h2>Which path does what</h2>
+  <div class="grid">
+    <div class="card"><h3>2D Frame</h3>
+      <ul><li>Two-story, one-bay steel moment frame</li><li>Bay, story heights, W-shapes, base, fixed or pinned beam ends</li><li>Beam loads, wind and seismic at each level</li></ul></div>
+    <div class="card"><h3>3D Building</h3>
+      <ul><li>One-story column grid plus roof beams</li><li>Grid spacings, column height, corner/edge/interior columns</li><li>Loads by tributary area. A "Columns only" switch skips the roof beams</li></ul></div>
+    <div class="card"><h3>2D Truss</h3>
+      <ul><li>Opens Truss to RISA: Fink, Howe/Pratt, flat-chord or mono templates</li><li>Upload a drawing, straighten a skewed photo with four pins, edit nodes</li><li>Use <b>Download sheet</b> to bring your project's drawing along</li></ul></div>
+    <div class="card"><h3>3D Misc Frame</h3>
+      <ul><li>Opens the tracer with your sheet loaded</li><li>Set the scale from a known dimension, then Find lines or click node to node</li><li>Export DXF, CSV or rows to paste into RISA spreadsheets</li></ul></div>
+  </div>
+  <p class="note" style="margin-top:12px">Every model gets basic load cases and ASCE 7-22 ASD load combinations. Check them against the standard before relying on them.</p>
+
+  <h2>Reading a sketch with Claude</h2>
+  <div class="grid">
+    <div class="card"><h3>On the website <span class="tag">needs an API key</span></h3>
+      <ul><li>Click <b>Read the sketch</b> in the workspace or the tracer</li><li>Paste your own Anthropic API key once. It stays in your browser, and the sheet goes straight to Anthropic</li><li>Review what Claude filled in before you download</li></ul></div>
+    <div class="card"><h3>In Claude Desktop or Claude Code <span class="tag">no key</span></h3>
+      <ul><li>Add the repo's MCP server (setup in <code>mcp/README.md</code>)</li><li>Show Claude your sketch: "Read the bay, heights and sizes, check them with me, then build it"</li><li>The <code>.r3d</code> lands in the repo's <code>out/</code> folder</li></ul></div>
+  </div>
+
+  <h2>How Claude reads a sketch</h2>
+  <table class="wide">
+    <tr><th>On the sketch</th><th>Means</th></tr>
+    <tr><td>A pen line</td><td>A member</td></tr>
+    <tr><td>A label (C1, B1, B2)</td><td>A section set</td></tr>
+    <tr><td>A size table</td><td>The shape for each label. Struck-out sizes are ignored</td></tr>
+    <tr><td>A shaded triangle at a beam end</td><td>Fixed connection. No triangle means pinned</td></tr>
+    <tr><td>A line over hatch at a column base</td><td>Fixed base</td></tr>
+    <tr><td>Dimension strings</td><td>The geometry</td></tr>
+  </table>
+
+  <h2>Good to know</h2>
+  <ul>
+    <li><b>Your projects stay in your browser.</b> They aren't shared with teammates or other devices.</li>
+    <li><b>Your own RISA template:</b> on the build page, add a RISA-saved <code>.r3d</code> to keep your office's materials, codes and settings.</li>
+    <li><b>3D Building builds one level.</b> For more stories, extend the model in RISA or use the team's local app.</li>
+    <li><b>Truss drawings:</b> the Claude drawing reader only runs on the truss tool's claude.ai version. Templates and export work everywhere.</li>
+    <li><b>More tools:</b> All tools lists Afshin's local app (Python, reads sketches and PDFs and opens RISA) and Philip's floor-plan-columns skill for Claude Code.</li>
+  </ul>
+
+  <div class="box"><b>The engineer owns the design.</b> These tools build a starting model faster. Check every member, size, load, connection and support in RISA before using any result.</div>
+
+  <p class="note" style="margin-top:20px">Code and setup: github.com/khkusakabe/BMTR-sketch-to-risa · Known issues: <code>KNOWN-ISSUES.md</code></p>
+  <p class="noprint" style="margin-top:12px"><a href="#" onclick="window.print();return false" style="font-weight:600">Print this page</a></p>
+</main>
+</body>
+</html>

@@ -4,7 +4,7 @@
 
 Turn a framing sketch, a PDF plan or a truss drawing into a starting RISA-3D model, instead of retyping every node and member.
 
-**Live site: https://khkusakabe.github.io/BMTR-sketch-to-risa/**
+**Live site: https://khkusakabe.github.io/BMTR-sketch-to-risa/** · **How to use (printable handout): https://khkusakabe.github.io/BMTR-sketch-to-risa/how-to.html**
 
 ## How it works
 
