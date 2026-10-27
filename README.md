@@ -1,63 +1,78 @@
 # Sketch to RISA
 
-A browser app that turns a PDF drawing or a photo of a hand sketch into a starting RISA-3D model. Built at the NCSEA Big Build SE Hackathon, 2026-10-27.
+**Team BMTR, NCSEA Big Build SE Hackathon, 2026-10-27.**
 
-It runs entirely in the browser. Nothing is uploaded anywhere.
+Turn a framing sketch, a PDF plan or a truss drawing into a starting RISA-3D model, instead of retyping every node and member.
 
-> **Heads-up:** Afshin's app is becoming the team app at the site root. This first prototype now lives in `prototype/` and stays live at https://khkusakabe.github.io/BMTR-sketch-to-risa/prototype/. Hosting steps: [HOSTING.md](HOSTING.md). Team notes: https://khkusakabe.github.io/BMTR-sketch-to-risa/team.html
+**Live site: https://khkusakabe.github.io/BMTR-sketch-to-risa/**
 
 ## How it works
 
-1. **Open** a PDF page or an image (photo or scan of a sketch).
-2. **Set scale:** click both ends of a known dimension and type its length (`24'-6"`, `7.5`, `2.5m`).
-3. **Draw members:** click node to node. Clicks snap to existing nodes. Hold Shift to lock horizontal or vertical.
-4. **Find lines (auto-detect):** drag a box around the framing, or click once for the whole sheet. Suggested members show dashed. Remove extras (dimension lines, ground lines) with Delete, then Accept. Accept joins ends that nearly meet and adds nodes where lines cross, so beams and columns connect. The slider sets the shortest line to keep.
-5. **Supports:** click a node to cycle Pinned, Fixed, Roller, none.
-6. **Export:**
-   - **Copy nodes / members / supports** puts tab-separated rows on the clipboard. Paste them into the matching RISA-3D spreadsheet (Nodes, Members, Boundary Conditions).
-   - **Download DXF** writes members as LINE entities on layer `MEMBERS`, in feet. Import it in RISA-3D with File > Import > DXF.
-   - **Download CSV** writes all three tables to one file.
+The home screen is the **Model Generator**. Start a project, upload the plan sheet, pick the system type, and it sends you to the right tool:
 
-Coordinates use the lowest, leftmost node as the origin. Elevation view exports X and Y (Y up). Plan view exports X and Z.
+| System type | Tool | Runs |
+|---|---|---|
+| **2D Frame** | Moment Frame generator: bay, story heights, W-shapes, base, loads, then download a `.r3d` | In the browser |
+| **3D Building** | Roof Framing generator: column grid plus roof beams (or columns only), loads by tributary area, then download a `.r3d` | In the browser |
+| **2D Truss** | Truss to RISA: Fink, Howe/Pratt, flat-chord or mono templates, or a drawing read by Claude | On claude.ai |
+| **3D Misc Frame** | Browser tracer: find lines automatically or trace node to node, then export DXF or RISA spreadsheet rows | In the browser |
 
-## Run locally
+For reading a sketch or a PDF with Ai, the workspace also links:
 
-It's plain HTML, CSS and JavaScript with no build step. Serve the folder with any static server:
+- **Afshin's app:** a Claude agent reads a sketch photo or a PDF plan, checks its own drawing and revises, then writes a native `.r3d` and opens RISA-3D. Runs on your PC.
+- **Philip's floor-plan-columns skill:** finds or lays out columns on a 1-story PDF plan, frames the roof, and writes a `.r3d` plus a Column web app. Runs in Claude Code.
 
-```bash
-python -m http.server 8080
+The generators write RISA-3D v23 files with nodes, supports, AISC sections, members, basic load cases and ASCE 7-22 ASD load combinations. Each one has a built-in template with its account ID removed, or you can supply your own RISA-saved `.r3d` to keep your office's materials, codes and settings.
+
+## The team's pieces
+
+| Piece | Where | By |
+|---|---|---|
+| Model Generator home screen and New Project page | `index.html`, `new-project.html` (originals in `Web Page/`) | Chandler |
+| RISA-3D generators: moment frame, foundation plan, roof framing | `Final Models/` | Chandler |
+| Workflow guides: moment frame from a sketch, wall model from a floor plan | `sketch-to-risa-moment-frame.md`, `risa-wall-model-from-plan.md` | Chandler |
+| Worked RISA packages: Model 1 moment frame, Model 3 column plan | `models/` | Chandler |
+| `.r3d` writer from RISA's published file format | `.claude/skills/sketch-to-risa-dev/r3d.py` | Chandler |
+| Sketch and PDF reader with a Claude agent, framing editor, RISA launcher | `app/` | Afshin |
+| Floor-plan-columns Claude skill | `.claude/skills/floor-plan-columns/` | Philip Yu |
+| Truss to RISA, and its beta with photo straightening | [claude.ai](https://claude.ai/artifact/EHKFcVRKoUaU1UwbpgMgGr), [beta](https://claude.ai/artifact/4N6NXAs1sMhQWdEN2XEZef) | Team |
+| Project workspace that ties it together, browser tracer with line detection | `generate.html`, `mg/`, `prototype/` | Kei |
+| Team notes, roster and shared skills | `team.html`, `team.json`, `.claude/skills/` | Team |
+
+## Repo map
+
+```
+index.html, new-project.html   Model Generator: projects home and New Project
+generate.html, mg/             Project workspace: runs the generators, hands off to the other tools
+Final Models/                  RISA-3D generators (plain JavaScript, browser or Node)
+app/                           Afshin's local app (Python server, Claude agents, .r3d writer)
+prototype/                     Browser tracer: line detection, hand tracing, DXF and spreadsheet export
+models/                        Worked RISA packages (Model 1, Model 3)
+.claude/skills/                Shared Claude Code skills
+tools.html, team.html          All tools page and team notes
+Web Page/                      Chandler's original mockups
 ```
 
-Then open http://localhost:8080/prototype/.
+## Run it
 
-## Deploy
+- **Browser tools:** open the live site. No install. To run locally, serve the repo folder with any static server, for example `python -m http.server 8080`, then open http://localhost:8080.
+- **Generators from the command line:** `node "Final Models/moment-frame.js" inputs.json out.r3d`. See the header of each file for its inputs.
+- **Afshin's app:** see [`app/README.md`](app/README.md). It needs Python, a Claude login or API key, and RISA-3D.
 
-GitHub Pages: Settings > Pages > Deploy from a branch > `main` / root.
+Projects created on the site are saved in your own browser only. Nothing is uploaded.
 
-## How line detection works
+## Contributing
 
-`prototype/detect.js`, plain JavaScript with no libraries:
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). To get push access, open a [join request](https://github.com/khkusakabe/BMTR-sketch-to-risa/issues/new?title=Add%20me%20to%20the%20repo) or send Kei your GitHub username.
 
-1. Adaptive threshold (Bradley and Roth, 2007) separates ink from paper, even under uneven photo lighting.
-2. Zhang-Suen thinning (1984) reduces strokes to 1 px center lines.
-3. Hough transform (Duda and Hart, 1972) finds the strongest straight line, splits the ink along it into continuous runs, keeps long dense runs and repeats.
-4. Cleanup merges broken pieces of one line, squares up near-horizontal and near-vertical lines, and joins ends at corners and T's.
+## Sources
 
-## Samples
-
-- `prototype/samples/portal-frame.svg`: a clean gable frame drawing (40'-0" span).
-- `prototype/samples/hand-sketch.jpg`: a two-bay, two-story braced frame drawn like a pencil sketch photo. Regenerate it from `prototype/` with `python tools/make_sketch.py samples/hand-sketch.jpg` (needs Pillow).
-
-## Libraries
-
-- [PDF.js](https://mozilla.github.io/pdf.js/) 3.11.174 (Apache 2.0), loaded from cdnjs.
+- RISA-3D file format: RISA-3D Help, Appendix D (help.risa.com).
+- AISC Shapes Database (W and HSS properties).
+- Load combinations follow ASCE 7-22 ASD. Check them against the standard before relying on them.
+- Browser line detection: Bradley and Roth adaptive threshold (2007), Zhang and Suen thinning (1984), Hough transform (Duda and Hart, 1972).
+- [PDF.js](https://mozilla.github.io/pdf.js/) 3.11.174 (Apache 2.0).
 
 ## Note
 
-This tool helps an engineer build a starting model faster. The engineer checks every coordinate, connection and support in RISA and owns the design.
-
-## Ideas next
-
-- Snap detected nodes to grid lines so hand-drawn wobble rounds out.
-- Read grid lines and dimension text from vector PDFs.
-- Section assignment per member.
+These tools help an engineer build a starting model faster. The engineer checks every member, size, load, connection and support in RISA and owns the design.
