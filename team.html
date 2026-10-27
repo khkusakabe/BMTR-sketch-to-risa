@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BMTR Team Notes</title>
+  <meta name="description" content="What team BMTR has built so far, how it works, and what to pick up next.">
+  <style>
+    :root {
+      --bg: #f5f6f8; --panel: #ffffff; --text: #1c2129; --muted: #5d6673; --line: #d6dbe2;
+      --accent: #1f6feb; --accent-soft: #e6efff; --done: #0b8a6a; --open: #b45309;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1216; --panel: #171b21; --text: #e6e9ee; --muted: #9aa4b1; --line: #2a313b;
+        --accent: #4c8dff; --accent-soft: #1a2638; --done: #34d3a5; --open: #f5b04a;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 28px; margin: 0 0 4px; }
+    h2 { font-size: 19px; margin: 36px 0 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+    h3 { font-size: 15px; margin: 18px 0 6px; }
+    p, li { max-width: 72ch; }
+    a { color: var(--accent); }
+    code { font-size: 13px; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+    pre { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    .links { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+    .links a { text-decoration: none; border: 1px solid var(--accent); border-radius: 8px; padding: 8px 14px; font-weight: 600; }
+    .links a.primary { background: var(--accent); color: var(--panel); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 10px 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+    .tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px; margin-right: 6px; border: 1px solid currentColor; }
+    .tag.done { color: var(--done); }
+    .tag.open { color: var(--open); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    ol.flow { padding-left: 20px; }
+    .note { color: var(--muted); font-size: 13px; }
+    @media (max-width: 600px) { th:nth-child(3), td:nth-child(3) { display: none; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Sketch to RISA</h1>
+  <p class="sub">Team BMTR, NCSEA Big Build SE Hackathon, 2026-10-27. What we've built, how it works, and what to pick up next.</p>
+
+  <div class="links">
+    <a class="primary" href="./">Open the app</a>
+    <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa">GitHub repo</a>
+    <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/issues">Open tasks</a>
+  </div>
+
+  <h2>The idea</h2>
+  <p>Engineers start a lot of models from a marked-up PDF or a quick sketch, then retype every node and member into RISA. This app lets you trace the drawing instead, or have it find the lines for you, and export a starting RISA-3D model. Everything runs in the browser and nothing is uploaded.</p>
+
+  <h2>Try it in a minute</h2>
+  <ol class="flow">
+    <li>Download <a href="samples/hand-sketch.jpg">samples/hand-sketch.jpg</a> (a two-bay, two-story braced frame drawn like a phone photo) and open it in the app.</li>
+    <li><b>Set scale:</b> click the bottoms of the first two columns and type <code>25'</code>.</li>
+    <li><b>Find lines:</b> click once on the drawing. Seven dashed suggestions appear.</li>
+    <li><b>Delete</b> the long ground line, then <b>Accept</b>. You get 9 nodes and 11 connected members.</li>
+    <li><b>Supports:</b> click the three column bases.</li>
+    <li><b>Export:</b> copy the Nodes, Members and Boundary Conditions rows into RISA-3D, or download the DXF.</li>
+  </ol>
+
+  <h2>What's done</h2>
+  <div class="grid">
+    <div class="card"><span class="tag done">done</span><b>Open drawings</b><br>PDF (any page) or image, by button or drag and drop.</div>
+    <div class="card"><span class="tag done">done</span><b>Scale</b><br>Click a known dimension, type <code>24'-6"</code>, <code>7.5</code> or <code>2.5m</code>.</div>
+    <div class="card"><span class="tag done">done</span><b>Trace by hand</b><br>Snap to nodes and members, Shift for ortho, a live length readout, undo.</div>
+    <div class="card"><span class="tag done">done</span><b>Find lines</b><br>Auto-detects straight members in clean drawings and sketch photos, joins corners and T's, adds nodes at crossings.</div>
+    <div class="card"><span class="tag done">done</span><b>Supports</b><br>Pinned, Fixed and Roller, drawn on the model.</div>
+    <div class="card"><span class="tag done">done</span><b>Export</b><br>Tab-separated rows for the RISA spreadsheets, DXF (feet, layer MEMBERS), CSV, and save/load of the project.</div>
+  </div>
+
+  <h2>How it's built</h2>
+  <p>Plain HTML, CSS and JavaScript. No build step, no framework, no server. GitHub Pages serves the repo root, and every push to <code>main</code> goes live within a minute or two.</p>
+  <table>
+    <tr><th>File</th><th>What it holds</th><th>Start reading at</th></tr>
+    <tr><td><code>index.html</code></td><td>Layout: tools panel, drawing canvas, model and export panel.</td><td>The <code>.tools</code> aside</td></tr>
+    <tr><td><code>app.js</code></td><td>Model, drawing, mouse and keyboard input, scale, supports, accepting suggestions, and export.</td><td><code>exportNodes()</code>, <code>acceptSuggestions()</code></td></tr>
+    <tr><td><code>detect.js</code></td><td>Line detection, with no libraries. Exposes <code>LineDetect.detect(canvas, rect, opts)</code>.</td><td><code>detect()</code></td></tr>
+    <tr><td><code>style.css</code></td><td>Light and dark themes from color tokens on <code>:root</code>.</td><td><code>:root</code></td></tr>
+    <tr><td><code>samples/</code></td><td>A clean gable frame (SVG) and a hand-sketch photo (JPG).</td><td></td></tr>
+    <tr><td><code>tools/make_sketch.py</code></td><td>Regenerates the sketch sample. Needs Pillow.</td><td></td></tr>
+  </table>
+
+  <h3>The model</h3>
+  <p>Nodes are stored in drawing pixels: <code>{id, x, y, support}</code>. Members are <code>{id, i, j}</code>, node ids. One number, <code>ftPerPx</code>, turns pixels into feet on export. The origin is the lowest, leftmost node. Elevation exports X and Y (Y up), and plan exports X and Z.</p>
+
+  <h3>Line detection pipeline</h3>
+  <ol class="flow">
+    <li><b>Adaptive threshold</b> (Bradley and Roth, 2007): ink is anything clearly darker than its surroundings, which copes with uneven photo lighting.</li>
+    <li><b>Thinning</b> (Zhang and Suen, 1984): strokes of any width become 1 px center lines.</li>
+    <li><b>Hough transform</b> (Duda and Hart, 1972): take the strongest straight line, split its ink into continuous runs, keep long dense runs, remove their votes, repeat.</li>
+    <li><b>Cleanup:</b> merge broken pieces of one line, square up lines within 3 degrees of level or plumb, extend or trim ends to meet at corners and T's.</li>
+  </ol>
+  <p class="note">A sketch photo at 1600 x 1200 runs in about 0.2 seconds. The slider sets the shortest line to keep, which filters out text and hatching.</p>
+
+  <h2>Open tasks</h2>
+  <p>Pick one, put your name on its GitHub issue, and go. Each one is mostly self-contained.</p>
+  <table>
+    <tr><th>Task</th><th>Why it matters</th><th>Where</th></tr>
+    <tr><td><span class="tag open">open</span><b>Check the export in real RISA-3D</b></td><td>The DXF and paste formats come from public docs, but nobody has opened them in RISA yet. This matters most.</td><td>RISA, then <code>app.js</code> export</td></tr>
+    <tr><td><span class="tag open">open</span><b>Snap to grid lines</b></td><td>Hand-drawn wobble leaves values like 0.167 ft. Snapping nodes onto shared X and Y lines makes clean grids.</td><td><code>acceptSuggestions()</code></td></tr>
+    <tr><td><span class="tag open">open</span><b>Read vector PDFs exactly</b></td><td>CAD PDFs hold real line coordinates. PDF.js <code>getOperatorList()</code> can give exact members, no image detection needed.</td><td>New, beside <code>renderPdfPage()</code></td></tr>
+    <tr><td><span class="tag open">open</span><b>Member sections</b></td><td>Pick a shape per member or for a selection (beam, column, brace) and include it in the Members export.</td><td>Model, panel, <code>tableFor()</code></td></tr>
+    <tr><td><span class="tag open">open</span><b>Phone camera input</b></td><td>Snap a photo of a napkin sketch straight into the app at the table.</td><td><code>index.html</code> file input</td></tr>
+    <tr><td><span class="tag open">open</span><b>Multi-level plans</b></td><td>Trace one plan, repeat it at several elevations, add columns between levels, and get a 3D model.</td><td>Model and export</td></tr>
+    <tr><td><span class="tag open">open</span><b>Demo script and pitch</b></td><td>A 2-minute walk-through for the judges: problem, live demo on a sketch, what's next.</td><td>Slides or a doc</td></tr>
+  </table>
+
+  <h2>How to work on it</h2>
+  <ol class="flow">
+    <li><b>Get access:</b> send Kei your GitHub username and you'll get a collaborator invite.</li>
+    <li><b>Clone and run:</b>
+<pre><code>git clone https://github.com/khkusakabe/BMTR-sketch-to-risa.git
+cd BMTR-sketch-to-risa
+python -m http.server 8080</code></pre>
+      Then open <code>http://localhost:8080</code>. Any static server works.</li>
+    <li><b>Branch per task:</b> <code>git switch -c grid-snap</code>, commit small, and open a pull request. <code>main</code> is the live site, so keep it working.</li>
+    <li><b>Keep it plain:</b> no build step, so anyone can open the files and go. If you add a library, load a pinned version from cdnjs.</li>
+  </ol>
+
+  <h2>Known limits</h2>
+  <ul>
+    <li>Find lines only does straight lines. Arcs and curved members are not detected.</li>
+    <li>Dimension lines, ground lines and borders get found too. Box the framing or delete the extras.</li>
+    <li>Export assumes feet. Units and member properties get set in RISA.</li>
+  </ul>
+  <p class="note">This tool helps an engineer build a starting model faster. The engineer checks every coordinate, connection and support in RISA and owns the design.</p>
+</main>
+</body>
+</html>

@@ -50,6 +50,7 @@ body {
 }
 .top h1 { font-size: 18px; margin: 0 8px 0 0; }
 .status { color: var(--muted); }
+.teamlink { margin-left: auto; color: var(--accent); }
 .pagectl input { width: 56px; }
 
 .layout {
