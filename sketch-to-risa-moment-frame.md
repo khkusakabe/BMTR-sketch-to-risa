@@ -149,6 +149,10 @@ Spot-check a few shapes before using the data: W12X35 has Ix = 285, W16X31 has I
 
 ## Example: Model 1 (from sketch)
 
+![Model 1 hand sketch: 2-D moment frame with C1 columns, B1 and B2 beams, fixed connections and fixed bases](samples/model1-sketch.png)
+
+*Source sketch. The photo has been cropped and thresholded to black and white so the pen work reads clearly.*
+
 - **Bay:** 20'-0".
 - **Stories:** 15'-0" to Level 2 (B2), then 10'-0" to the roof (B1).
 - **Shapes:** C1 = W12X35, B1 = W12X22 (W16X26 struck), B2 = W16X31.
