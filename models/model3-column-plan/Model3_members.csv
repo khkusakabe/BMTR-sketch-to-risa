@@ -1,0 +1,17 @@
+Label,I Node,J Node,Rotate [deg],Section Set,Shape,Material,Sketch symbol
+C1-1,N1,N17,0,C1,W12X35,A992,I (web along Z)
+C3-1,N2,N18,90,C3,W12X45,A992,H (web along X)
+C3-2,N3,N19,90,C3,W12X45,A992,H (web along X)
+C1-2,N4,N20,0,C1,W12X35,A992,I (web along Z)
+C3-3,N5,N21,0,C3,W12X45,A992,I (web along Z)
+C2-1,N6,N22,0,C2,HSS5X5X3/8,A500 Gr C,HSS square
+C2-2,N7,N23,0,C2,HSS5X5X3/8,A500 Gr C,HSS square
+C3-4,N8,N24,0,C3,W12X45,A992,I (web along Z)
+C3-5,N9,N25,0,C3,W12X45,A992,I (web along Z)
+C2-3,N10,N26,0,C2,HSS5X5X3/8,A500 Gr C,HSS square
+C2-4,N11,N27,0,C2,HSS5X5X3/8,A500 Gr C,HSS square
+C3-6,N12,N28,0,C3,W12X45,A992,I (web along Z)
+C1-3,N13,N29,0,C1,W12X35,A992,I (web along Z)
+C3-7,N14,N30,90,C3,W12X45,A992,H (web along X)
+C3-8,N15,N31,90,C3,W12X45,A992,H (web along X)
+C1-4,N16,N32,0,C1,W12X35,A992,I (web along Z)
