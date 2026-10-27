@@ -5,6 +5,8 @@ description: Locate structural columns on a PDF floor plan of a 1-story building
 
 # Floor plan columns + roof framing → RISA-3D model + "Column" app
 
+Added by: Philip Yu
+
 The user wants column **placement** and **steel roof framing** for a 1-story building, delivered as:
 1. a **RISA-3D model (.r3d)**, sent in chat. It is written into the user's own RISA-3D template (`assets/risa_template.r3d`, saved from their RISA-3D), so it carries their version, units, vertical axis, codes and materials. A DXF is made only if the user asks (`--dxf`).
 2. a **"Column" web app** (published artifact) prefilled from the plan, where they can change the layout rules, story height, column shape and framing, edit or add columns, and download the .r3d.
