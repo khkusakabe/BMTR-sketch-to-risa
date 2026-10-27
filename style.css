@@ -66,6 +66,9 @@ body {
 .tools { border-right: 1px solid var(--line); }
 .out { border-left: 1px solid var(--line); }
 h2 { font-size: 15px; margin: 0 0 10px; }
+h2.sub { margin-top: 4px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; border-color: var(--line); }
 h3 { font-size: 13px; margin: 16px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
 .modes { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }

@@ -26,6 +26,10 @@ let spaceDown = false;
 let shiftDown = false;
 let fade = false;
 const history = [];
+let suggestions = [];               // detected segments waiting for Accept, in doc pixels
+let suggestTol = 6;                 // doc-pixel tolerance the detector used
+let detectBox = null;               // box being dragged in Find lines mode
+let lastDetectRect = null;
 
 // ---------- geometry helpers ----------
 const toDoc = (sx, sy) => ({ x: (sx - view.x) / view.k, y: (sy - view.y) / view.k });
@@ -180,6 +184,111 @@ function splitMember(m, n) {
   model.members.push({ id: model.nextMember++, i: n.id, j });
 }
 
+function dedupeMembers() {
+  const seen = new Set();
+  model.members = model.members.filter((m) => {
+    const key = Math.min(m.i, m.j) + "-" + Math.max(m.i, m.j);
+    if (m.i === m.j || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// every node lying inside a member splits that member, so T-joints connect
+function splitMembersAtNodes(tol) {
+  const out = [];
+  for (const m of model.members) {
+    const a = nodeById(m.i), b = nodeById(m.j);
+    const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1;
+    const tOf = (n) => ((n.x - a.x) * dx + (n.y - a.y) * dy) / L2;
+    const on = model.nodes
+      .filter((n) => n !== a && n !== b && tOf(n) > 0 && tOf(n) < 1 && distToSegment(n, a, b) <= tol)
+      .sort((p, q) => tOf(p) - tOf(q));
+    if (!on.length) { out.push(m); continue; }
+    const chain = [a, ...on, b];
+    out.push({ ...m, j: chain[1].id });
+    for (let k = 1; k < chain.length - 1; k++) out.push({ id: model.nextMember++, i: chain[k].id, j: chain[k + 1].id });
+  }
+  model.members = out;
+  dedupeMembers();
+}
+
+// ---------- auto-detect ----------
+function runDetect(rect) {
+  if (!docImage) return status("Open a drawing first.");
+  lastDetectRect = rect;
+  status("Finding lines...");
+  setTimeout(() => {
+    const t0 = performance.now();
+    const minFrac = Number($("minLen").value) / 100;
+    const res = LineDetect.detect(docImage, rect, { minFrac });
+    suggestions = res.segments;
+    suggestTol = res.tol;
+    updateSuggestUI();
+    const ms = Math.round(performance.now() - t0);
+    status(suggestions.length
+      ? `Found ${suggestions.length} lines (${ms} ms). Remove extras with Delete, then Accept.`
+      : "No lines found. Try a smaller length limit or a tighter box.");
+    draw();
+  }, 20);
+}
+
+function updateSuggestUI() {
+  $("accept").disabled = $("discard").disabled = !suggestions.length;
+  $("accept").textContent = suggestions.length ? `Accept ${suggestions.length}` : "Accept";
+}
+
+function acceptSuggestions() {
+  if (!suggestions.length) return;
+  snapshot();
+  const tol = suggestTol;
+  const findOrAdd = (x, y) => {
+    let best = null, bd = tol;
+    for (const n of model.nodes) { const d = Math.hypot(n.x - x, n.y - y); if (d <= bd) { best = n; bd = d; } }
+    if (best) return best;
+    const n = { id: model.nextNode++, x, y, support: "" };
+    model.nodes.push(n);
+    return n;
+  };
+  const before = model.members.length;
+  for (const g of suggestions) addMember(findOrAdd(g.x1, g.y1), findOrAdd(g.x2, g.y2));
+  // lines that cross (a beam through a column) get a node there, so they connect
+  const segs = model.members.map((m) => { const a = nodeById(m.i), b = nodeById(m.j); return { x1: a.x, y1: a.y, x2: b.x, y2: b.y }; });
+  for (let i = 0; i < segs.length; i++) {
+    for (let j = i + 1; j < segs.length; j++) {
+      const P = crossing(segs[i], segs[j]);
+      if (P) findOrAdd(P.x, P.y);
+    }
+  }
+  splitMembersAtNodes(tol);
+  const added = model.members.length - before;
+  suggestions = [];
+  updateSuggestUI();
+  setMode(model.ftPerPx ? "support" : "calibrate");
+  status(`Added ${added} members. ${model.ftPerPx ? "Now set supports." : "Now set the scale."}`);
+  refresh();
+}
+
+// where two segments cross inside both (not at their ends), or null
+function crossing(A, B) {
+  const d1x = A.x2 - A.x1, d1y = A.y2 - A.y1, d2x = B.x2 - B.x1, d2y = B.y2 - B.y1;
+  const den = d1x * d2y - d1y * d2x;
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((B.x1 - A.x1) * d2y - (B.y1 - A.y1) * d2x) / den;
+  const u = ((B.x1 - A.x1) * d1y - (B.y1 - A.y1) * d1x) / den;
+  const e = 0.001;
+  return t > e && t < 1 - e && u > e && u < 1 - e ? { x: A.x1 + t * d1x, y: A.y1 + t * d1y } : null;
+}
+
+function nearestSuggestion(p) {
+  let best = -1, bestD = SNAP_PX / view.k;
+  suggestions.forEach((g, i) => {
+    const d = distToSegment(p, { x: g.x1, y: g.y1 }, { x: g.x2, y: g.y2 });
+    if (d <= bestD) { best = i; bestD = d; }
+  });
+  return best;
+}
+
 function addMember(a, b) {
   if (a.id === b.id) return;
   const dup = model.members.some((m) => (m.i === a.id && m.j === b.id) || (m.i === b.id && m.j === a.id));
@@ -224,7 +333,7 @@ function resize() {
 function fitView() {
   if (!docImage) return;
   const r = canvas.getBoundingClientRect();
-  view.k = Math.min(r.width / docImage.width, r.height / docImage.height) * 0.95;
+  view.k = Math.min(r.width / docImage.width, r.height / docImage.height) * 0.95 || 1;  // 1 if the canvas is hidden
   view.x = (r.width - docImage.width * view.k) / 2;
   view.y = (r.height - docImage.height * view.k) / 2;
   draw();
@@ -244,6 +353,25 @@ function draw() {
   }
 
   const cMember = css("--member"), cNode = css("--node"), cSup = css("--support"), cPrev = css("--preview");
+
+  if (suggestions.length) {
+    ctx.save();
+    ctx.strokeStyle = cPrev; ctx.fillStyle = cPrev; ctx.lineWidth = 3;
+    ctx.setLineDash([8, 5]);
+    for (const g of suggestions) {
+      const a = toScreen({ x: g.x1, y: g.y1 }), b = toScreen({ x: g.x2, y: g.y2 });
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.fillRect(a.x - 3, a.y - 3, 6, 6); ctx.fillRect(b.x - 3, b.y - 3, 6, 6);
+    }
+    ctx.restore();
+  }
+  if (detectBox) {
+    const a = toScreen(detectBox.a), b = toScreen(detectBox.b);
+    ctx.save();
+    ctx.strokeStyle = cPrev; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+    ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+    ctx.restore();
+  }
 
   ctx.lineWidth = 3;
   ctx.strokeStyle = cMember;
@@ -369,7 +497,8 @@ function setMode(m) {
     draw: "Click node to node. Shift locks horizontal or vertical. Right-click or Esc ends a chain.",
     support: "Click a node to cycle Pinned, Fixed, Roller, none.",
     move: "Drag a node to adjust it.",
-    delete: "Click a node or member to remove it.",
+    delete: "Click a node, member or suggested line to remove it.",
+    detect: "Drag a box around the framing, or click once for the whole sheet.",
   };
   status(tips[m]);
   draw();
@@ -498,7 +627,14 @@ canvas.addEventListener("pointerdown", (e) => {
     return;
   }
 
+  if (mode === "detect") {
+    detectBox = { a: p, b: p };
+    return;
+  }
+
   if (mode === "delete") {
+    const si = nearestSuggestion(p);
+    if (si >= 0) { suggestions.splice(si, 1); updateSuggestUI(); draw(); return; }
     if (deleteAt(p)) refresh();
   }
 });
@@ -513,6 +649,7 @@ canvas.addEventListener("pointermove", (e) => {
   }
   hover = toDoc(sx, sy);
   if (dragNode) { dragNode.x = hover.x; dragNode.y = hover.y; }
+  if (detectBox) detectBox.b = hover;
   draw();
 });
 
@@ -523,6 +660,15 @@ canvas.addEventListener("pointerup", (e) => {
     pan = null;
   }
   if (dragNode) { mergeIfOverlapping(dragNode); dragNode = null; refresh(); }
+  if (detectBox) {
+    const { a, b } = detectBox;
+    detectBox = null;
+    const W = docImage ? docImage.width : 0, H = docImage ? docImage.height : 0;
+    const x0 = Math.max(0, Math.min(a.x, b.x)), y0 = Math.max(0, Math.min(a.y, b.y));
+    const x1 = Math.min(W, Math.max(a.x, b.x)), y1 = Math.min(H, Math.max(a.y, b.y));
+    const tiny = (x1 - x0) * view.k < 12 || (y1 - y0) * view.k < 12;
+    runDetect(tiny ? { x: 0, y: 0, w: W, h: H } : { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+  }
 });
 
 canvas.addEventListener("pointerleave", () => { hover = null; draw(); });
@@ -546,8 +692,7 @@ function mergeIfOverlapping(n) {
     if (m.i === n.id) m.i = other.id;
     if (m.j === n.id) m.j = other.id;
   }
-  model.members = model.members.filter((m, idx, arr) =>
-    m.i !== m.j && arr.findIndex((o) => (o.i === m.i && o.j === m.j) || (o.i === m.j && o.j === m.i)) === idx);
+  dedupeMembers();
   other.support = other.support || n.support;
   model.nodes = model.nodes.filter((x) => x !== n);
 }
@@ -556,9 +701,9 @@ window.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
   shiftDown = e.shiftKey;
   if (e.key === " ") { spaceDown = true; e.preventDefault(); }
-  if (e.key === "Escape") { chainFrom = null; calibPts = []; draw(); }
+  if (e.key === "Escape") { chainFrom = null; calibPts = []; detectBox = null; draw(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
-  const keys = { c: "calibrate", d: "draw", s: "support", m: "move", x: "delete" };
+  const keys = { c: "calibrate", d: "draw", s: "support", m: "move", x: "delete", f: "detect" };
   if (!e.ctrlKey && !e.metaKey && keys[e.key.toLowerCase()]) setMode(keys[e.key.toLowerCase()]);
   if (e.key === "Delete" || e.key === "Backspace") setMode("delete");
 });
@@ -592,6 +737,10 @@ $("clear").addEventListener("click", () => {
 });
 $("fit").addEventListener("click", fitView);
 $("dim").addEventListener("click", () => { fade = !fade; draw(); });
+$("accept").addEventListener("click", acceptSuggestions);
+$("discard").addEventListener("click", () => { suggestions = []; updateSuggestUI(); status("Suggestions discarded."); draw(); });
+$("minLen").addEventListener("input", (e) => { $("minLenOut").textContent = e.target.value + "%"; });
+$("minLen").addEventListener("change", () => { if (lastDetectRect && suggestions.length) runDetect(lastDetectRect); });
 $("plane").addEventListener("change", refresh);
 $("round").addEventListener("change", refresh);
 

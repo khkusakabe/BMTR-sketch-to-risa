@@ -32,6 +32,19 @@
         <button class="mode" data-mode="delete" title="Click a node or member to remove it (X)">Delete</button>
       </div>
 
+      <h2 class="sub">Auto-detect</h2>
+      <div class="modes">
+        <button class="mode" data-mode="detect" title="Drag a box around the framing, or click once for the whole sheet (F)">Find lines</button>
+      </div>
+      <label class="field">
+        <span>Ignore lines shorter than <b id="minLenOut">8%</b> of the box</span>
+        <input id="minLen" type="range" min="2" max="30" value="8">
+      </label>
+      <div class="row">
+        <button id="accept" class="btn primary" disabled>Accept</button>
+        <button id="discard" class="btn" disabled>Discard</button>
+      </div>
+
       <div class="field">
         <span>Scale</span>
         <b id="scaleOut">not set</b>
@@ -73,6 +86,7 @@
           <li><b>Set scale:</b> click both ends of a known dimension and type its length, for example <code>24'-6"</code> or <code>7.5</code> (feet).</li>
           <li><b>Draw members:</b> click node to node. Clicks snap to nearby nodes. Hold Shift to lock horizontal or vertical. Right-click or Esc ends a chain.</li>
           <li><b>Supports:</b> click a node to cycle its restraint.</li>
+          <li><b>Find lines</b> (optional): drag a box around the framing. Suggested members show dashed. Remove extras with Delete, then Accept.</li>
           <li>Export: copy the tables into RISA-3D spreadsheets, or import the DXF.</li>
         </ol>
         <p>Pan: drag with the right or middle button, or hold Space. Zoom: mouse wheel.</p>
@@ -110,6 +124,7 @@
       <p class="note">This tool helps an engineer build a starting model. Check every coordinate, connection and support in RISA before using results.</p>
     </aside>
   </main>
+  <script src="detect.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
