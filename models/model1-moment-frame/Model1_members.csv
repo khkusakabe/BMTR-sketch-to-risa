@@ -1,0 +1,5 @@
+Label,I Node,J Node,Section Set,Shape,Material,I Release,J Release
+C1-1,N1,N5,C1,W12X35,A992,Fixed,Fixed
+C1-2,N2,N6,C1,W12X35,A992,Fixed,Fixed
+B2,N3,N4,B2,W16X31,A992,Fixed,Fixed
+B1,N5,N6,B1,W12X22,A992,Fixed,Fixed

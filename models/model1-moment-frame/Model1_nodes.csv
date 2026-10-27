@@ -1,0 +1,7 @@
+Label,X [ft],Y [ft],Z [ft],X Bound,Y Bound,Z Bound,MX Bound,MY Bound,MZ Bound
+N1,0,0,0,Fixed,Fixed,Fixed,Fixed,Fixed,Fixed
+N2,20,0,0,Fixed,Fixed,Fixed,Fixed,Fixed,Fixed
+N3,0,15,0,,,Reaction,Reaction,Reaction,
+N4,20,15,0,,,Reaction,Reaction,Reaction,
+N5,0,25,0,,,Reaction,Reaction,Reaction,
+N6,20,25,0,,,Reaction,Reaction,Reaction,

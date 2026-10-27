@@ -1,0 +1,5 @@
+BLC Description,Category,X Gravity,Y Gravity,Z Gravity
+Dead,DL,,-1,
+Live,LL,,,
+Wind +X,WLX,,,
+Seismic QE +X,ELX,,,
