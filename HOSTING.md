@@ -1,5 +1,7 @@
 # Hosting the team app
 
+> **Update, 2026-10-27 2:20 PM:** Afshin's app is a local Python server (case 3C below), so it lives in `app/` with its own run guide (`app/README.md`). The site root is a landing page linking to it and to the browser prototype. The rest of this page is kept for reference.
+
 Afshin's app is becoming the team app. It goes at the root of this repo and is served by GitHub Pages at:
 
 **https://khkusakabe.github.io/BMTR-sketch-to-risa/**

@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RISA-3D Control Panel</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2330; --muted:#647083; --accent:#1f6feb; --ok:#1a7f37; --err:#cf222e; --border:#dde1e7; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171c; --card:#1d2128; --text:#e6e9ee; --muted:#9aa4b2; --accent:#4c8dff; --ok:#3fb950; --err:#f85149; --border:#2e343e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 "Segoe UI", system-ui, sans-serif; }
+  main { max-width:980px; margin:48px auto; padding:0 16px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; }
+  .step { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  h2 { font-size:17px; margin:2px 0 14px; }
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+  select { width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  button { margin-top:16px; padding:10px 18px; border:0; border-radius:6px; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .card + .card { margin-top:16px; }
+  input[type=number] { width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  input[type=file] { width:100%; font:inherit; color:var(--text); }
+  .row { display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:14px; }
+  #customRow { margin-top:14px; }
+  .tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--border); }
+  .tab { margin:0; border-radius:6px 6px 0 0; background:none; color:var(--muted); padding:8px 14px; }
+  .tab.active { color:var(--accent); box-shadow:inset 0 -2px 0 var(--accent); }
+  .hint { color:var(--muted); font-size:13px; margin:8px 0 0; }
+  .fe-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
+  .fe-toolbar button { margin:0; padding:7px 12px; font-size:14px; }
+  .fe-toolbar .seg { display:flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  .fe-toolbar .seg button { border-radius:0; background:none; color:var(--text); font-weight:500; }
+  .fe-toolbar .seg button.active { background:var(--accent); color:#fff; }
+  button.ghost { background:none; color:var(--text); border:1px solid var(--border); font-weight:500; }
+  .check { display:flex; align-items:center; gap:6px; margin:0; color:var(--text); font-size:14px; }
+  #feSize, td input { padding:7px 8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; font-size:14px; }
+  td input { width:120px; padding:4px 6px; }
+  .fe-host { margin-top:12px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--card); }
+  .fe-svg { display:block; width:100%; height:auto; max-height:78vh; touch-action:none; user-select:none; }
+  .fe-svg[data-tool=member], .fe-svg[data-tool=gridx], .fe-svg[data-tool=gridy] { cursor:crosshair; }
+  .fe-paper { fill:var(--card); }
+  .fe-grid line { stroke:var(--muted); stroke-dasharray:12 8; opacity:.6; }
+  .fe-bubble { fill:var(--card); stroke:var(--muted); }
+  .fe-bubble-t { fill:var(--muted); text-anchor:middle; dominant-baseline:central; font-weight:600; }
+  .fe-member { stroke:#1f6feb; stroke-linecap:round; }
+  .fe-member.nosize { stroke:#7d8fb3; }
+  .fe-member.sel { stroke:#e8590c; }
+  .fe-hit { stroke:transparent; cursor:pointer; }
+  .fe-label { fill:#1f4fa8; text-anchor:middle; font-weight:600; paint-order:stroke; stroke:var(--card); stroke-width:4px; cursor:text; }
+  .fe-label.muted { fill:var(--muted); font-weight:500; }
+  .fe-node { fill:transparent; cursor:move; }
+  .fe-node:hover { fill:rgba(26,127,55,.45); }
+  .fe-node.loose { fill:#cf222e; }
+  .fe-preview { stroke:#e8590c; stroke-dasharray:10 8; }
+  .fe-cursor { fill:none; stroke:#e8590c; stroke-width:3; }
+  .fe-dim, .fe-inline { width:100%; height:100%; box-sizing:border-box; text-align:center; border:1px solid var(--border); border-radius:4px; background:var(--card); color:var(--text); padding:0 2px; }
+  .fe-dim.unset { border-color:#e8590c; background:#fff4e6; color:#9a3c00; }
+  .fe-inline { border:2px solid #e8590c; }
+  #feSummary { margin-top:10px; font-size:14px; }
+  dialog { border:1px solid var(--border); border-radius:10px; padding:20px 22px; background:var(--card); color:var(--text); width:min(480px, calc(100vw - 32px)); }
+  dialog::backdrop { background:rgba(0,0,0,.35); }
+  dialog .check { margin:8px 0; }
+  #colFields { margin-top:6px; }
+  #colSize { width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  .dlg-buttons { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+  .dlg-buttons button { margin:0; }
+  .progress { margin-top:12px; }
+  .progress-track { height:10px; border-radius:5px; background:var(--bg); border:1px solid var(--border); overflow:hidden; }
+  .progress-bar { height:100%; width:0; background:var(--accent); transition:width .8s ease; }
+  .progress-bar.running { background-image:linear-gradient(45deg, rgba(255,255,255,.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.25) 50%, rgba(255,255,255,.25) 75%, transparent 75%);
+    background-size:20px 20px; animation:stripes 1s linear infinite; }
+  .progress-bar.done { background:var(--ok); }
+  .progress-bar.failed { background:var(--err); }
+  @keyframes stripes { to { background-position:20px 0; } }
+  @media (prefers-reduced-motion: reduce) { .progress-bar.running { animation:none; } }
+  .progress-text { margin-top:4px; }
+  .engine-row { margin-top:16px; }
+  .engine-row .check { font-size:14px; }
+  .read-box { margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:8px; }
+  .read-box button { margin-top:0; }
+  #apiKey { flex:1; min-width:220px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #moreText { width:100%; margin-top:8px; padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--card); color:var(--text); font:inherit; }
+  #moreBox { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  #designLog, #readLog { margin:12px 0 0; padding:10px; max-height:220px; overflow:auto; background:var(--bg); border-radius:6px; font-size:12.5px; white-space:pre-wrap; }
+  #readNotes ul { margin:8px 0 0; padding-left:20px; font-size:14px; }
+  .fe-support { fill:none; stroke:#1a7f37; }
+  tr.sel td { background:rgba(232,89,12,.1); }
+  tbody tr { cursor:pointer; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-weight:600; }
+  #status, #planStatus, #sketchStatus, #frameStatus, #risaStatus { margin-top:14px; min-height:1.5em; font-size:14px; }
+  .ok { color:var(--ok); } .err { color:var(--err); }
+</style>
+</head>
+<body>
+<main>
+  <h1>RISA-3D Control Panel</h1>
+  <p class="sub">Drive RISA-3D from your browser. More steps will be added here.</p>
+
+  <section class="card">
+    <div class="step">Step 1</div>
+    <h2>Open RISA-3D with a new model</h2>
+    <label for="exe">Installed version</label>
+    <select id="exe" disabled><option>Searching…</option></select>
+    <button id="go" disabled>Launch &amp; create new model</button>
+    <div id="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="step">Step 2</div>
+    <h2>Import a framing plan</h2>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-src="pdf">PDF plan</button>
+      <button class="tab" data-src="sketch">Sketch photo</button>
+    </div>
+
+    <div id="sketchPanel" hidden>
+      <div class="row">
+        <div>
+          <label for="photo">Photo of hand sketch (JPG or PNG)</label>
+          <input type="file" id="photo" accept="image/jpeg,image/png" capture="environment">
+        </div>
+        <div>
+          <label for="rotate">Rotate photo</label>
+          <select id="rotate">
+            <option value="0">No rotation</option>
+            <option value="90">90° clockwise</option>
+            <option value="180">180°</option>
+            <option value="270">90° counter-clockwise</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">Tip: shoot straight down in good light. Blue pen works best on lined paper (the ruled lines get ignored).</p>
+      <button id="process">Process sketch</button>
+      <div id="sketchStatus"></div>
+
+    </div>
+
+    <div id="pdfPanel">
+    <label for="pdf">Framing plan (PDF)</label>
+    <input type="file" id="pdf" accept="application/pdf,.pdf">
+    <div class="row">
+      <div>
+        <label for="scale">Drawing scale</label>
+        <select id="scale">
+          <optgroup label="Architectural">
+            <option value="384">1/32" = 1'-0"</option>
+            <option value="192">1/16" = 1'-0"</option>
+            <option value="128">3/32" = 1'-0"</option>
+            <option value="96" selected>1/8" = 1'-0"</option>
+            <option value="64">3/16" = 1'-0"</option>
+            <option value="48">1/4" = 1'-0"</option>
+            <option value="32">3/8" = 1'-0"</option>
+            <option value="24">1/2" = 1'-0"</option>
+            <option value="16">3/4" = 1'-0"</option>
+            <option value="12">1" = 1'-0"</option>
+          </optgroup>
+          <optgroup label="Engineering">
+            <option value="120">1" = 10'</option>
+            <option value="240">1" = 20'</option>
+            <option value="360">1" = 30'</option>
+            <option value="480">1" = 40'</option>
+            <option value="600">1" = 50'</option>
+          </optgroup>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div>
+        <label for="page">Sheet page #</label>
+        <input type="number" id="page" min="1" value="1">
+      </div>
+    </div>
+    <div id="customRow" hidden>
+      <label for="ratio">Custom scale: 1 inch on paper = ? inches real (e.g. 96 for 1/8"=1'-0")</label>
+      <input type="number" id="ratio" min="1" step="any">
+    </div>
+    <button id="upload">Import plan</button>
+    <div id="planStatus"></div>
+    </div>
+
+      <div id="sketchResult" hidden>
+        <div class="fe-toolbar engine-row">
+          <span class="hint">AI agent runs on:</span>
+          <label class="check"><input type="radio" name="engine" value="cc" checked> Claude Code (your Claude login, no key)</label>
+          <label class="check"><input type="radio" name="engine" value="api"> Anthropic API key</label>
+          <span id="engineNote" class="hint"></span>
+        </div>
+        <div class="read-box" id="readBox">
+          <button id="readBtn">Read sizes &amp; dimensions</button>
+          <p class="hint">Tries free offline OCR first. If it can't read the handwriting, an AI agent reads the sketch,
+            draws the framing, checks its drawing against the photo and redoes it until they match.</p>
+          <pre id="readLog" hidden></pre>
+          <div id="readNotes"></div>
+        </div>
+        <div class="read-box" id="designBox" hidden>
+          <button id="designBtn">Lay out framing with the AI agent</button>
+          <p class="hint">The agent studies the plan at your scale and places columns, girders and beams with preliminary
+            W sizes. It then reviews its framing drawn over the plan and revises it, up to 4 rounds.</p>
+          <pre id="designLog" hidden></pre>
+          <div id="designNotes"></div>
+          <div id="moreBox" hidden>
+            <p><b>Do you want to add any other members?</b></p>
+            <div class="fe-toolbar">
+              <button id="moreNo" class="ghost">No, the framing is complete</button>
+              <button id="moreYes">Yes, add members</button>
+            </div>
+            <div id="moreForm" hidden>
+              <textarea id="moreText" rows="3" placeholder="e.g. Add a beam along grid C from 2 to 4. Add columns at the four stair corners."></textarea>
+              <div class="fe-toolbar">
+                <button id="moreSend">Ask the agent to add them</button>
+                <span class="hint">…or draw them yourself with Add member and Column below.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="read-box" id="keyForm" hidden>
+          <p>The AI agent needs an Anthropic API key
+            (<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">get one here</a>;
+            a run typically costs a few cents to a few dimes). The key is stored only on this PC.</p>
+          <div class="fe-toolbar">
+            <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off">
+            <button id="saveKey">Save key &amp; run agent</button>
+          </div>
+          <div id="keyNotes"></div>
+        </div>
+        <div class="fe-toolbar">
+          <div class="seg">
+            <button class="tool active" data-tool="select" title="Click a member to select (Shift+click for more). Drag a node to move it.">Select / move</button>
+            <button class="tool" data-tool="member" title="Click start, click end. Hold Shift to keep drawing a chain.">Add member</button>
+            <button class="tool" data-tool="gridx" title="Click to add a vertical grid line; click an empty one to remove it.">Grid ↕</button>
+            <button class="tool" data-tool="gridy" title="Click to add a horizontal grid line; click an empty one to remove it.">Grid ↔</button>
+            <button class="tool" data-tool="support" title="Click a node to add or remove a column (pinned support).">Column</button>
+          </div>
+          <button class="ghost" id="feUndo" title="Ctrl+Z">Undo</button>
+          <button class="ghost" id="feDelete" title="Delete key">Delete</button>
+          <button class="ghost" id="feConnect">Connect loose ends</button>
+          <label class="check"><input type="checkbox" id="fePhoto" checked> Background</label>
+        </div>
+        <div class="fe-toolbar">
+          <input id="feSize" list="fe-sizes" placeholder="Size, e.g. W14x22">
+          <button class="ghost" id="feApply">Apply to selected</button>
+          <button class="ghost" id="feSelectAll">Select all</button>
+          <span id="feSelInfo" class="hint"></span>
+        </div>
+        <div id="editor" class="fe-host"></div>
+        <div id="feSummary"></div>
+        <p class="hint">Type the real spacing (ft) in the orange boxes along the grid. Double-click a member to type its size right on the drawing.
+          Members are joined automatically wherever they touch or cross; red dots are loose ends.</p>
+        <table>
+          <thead><tr><th>Member</th><th>From</th><th>To</th><th>Size</th><th>Length</th></tr></thead>
+          <tbody id="members"></tbody>
+        </table>
+        <button id="saveFrame">Save framing</button>
+        <div id="frameStatus"></div>
+      </div>
+  </section>
+
+  <section class="card">
+    <div class="step">Step 3</div>
+    <h2>Draw the framing in RISA-3D</h2>
+    <p class="hint">Writes a RISA-3D model of the framing above (nodes, members with their W sizes, A992 steel,
+      pinned beam ends, columns as pinned supports) and opens it in RISA-3D.</p>
+    <button id="toRisa">Send framing to RISA-3D</button>
+    <div id="risaStatus"></div>
+
+    <dialog id="risaDialog">
+      <form method="dialog">
+        <h2>Add columns?</h2>
+        <p class="hint" id="colInfo"></p>
+        <label class="check"><input type="radio" name="addCols" value="yes" checked> Yes, add columns under the column points</label>
+        <label class="check"><input type="radio" name="addCols" value="no"> No, just pin the floor at the column points</label>
+        <div id="colFields">
+          <div class="row">
+            <div>
+              <label for="storyHeight">Story height (ft)</label>
+              <input type="number" id="storyHeight" min="1" step="any" value="12">
+            </div>
+            <div>
+              <label for="colSize">Column size</label>
+              <input id="colSize" list="fe-sizes" value="W10X33">
+            </div>
+          </div>
+          <label for="colBase" style="margin-top:12px">Column base</label>
+          <select id="colBase">
+            <option value="pinned">Pinned</option>
+            <option value="fixed">Fixed</option>
+          </select>
+        </div>
+        <div class="dlg-buttons">
+          <button value="cancel" class="ghost" formnovalidate>Cancel</button>
+          <button value="send" id="dlgSend">Send to RISA-3D</button>
+        </div>
+      </form>
+    </dialog>
+  </section>
+</main>
+
+<script src="editor.js"></script>
+<script>
+const API = location.protocol === 'file:' ? 'http://127.0.0.1:8765' : '';
+const sel = document.getElementById('exe');
+const btn = document.getElementById('go');
+const status = document.getElementById('status');
+const show = (msg, cls = '') => { status.textContent = msg; status.className = cls; };
+
+async function loadInstalls() {
+  try {
+    const { installs } = await (await fetch(API + '/api/installs')).json();
+    if (!installs.length) { sel.innerHTML = '<option>None found</option>'; return show('RISA-3D was not found on this PC.', 'err'); }
+    sel.innerHTML = installs.map(i => `<option value="${i.path}">RISA-3D ${i.version} — ${i.path}</option>`).join('');
+    sel.disabled = btn.disabled = false;
+  } catch {
+    show('Cannot reach the local server. Double-click start.bat (keep its window open), then refresh.', 'err');
+  }
+}
+
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  show('Launching RISA-3D…');
+  try {
+    const res = await fetch(API + '/api/new-model', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ exe: sel.value }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    show(`RISA-3D started (PID ${data.pid}) with a new, untitled model.`, 'ok');
+  } catch (e) {
+    show('Failed: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+const pdf = document.getElementById('pdf');
+const scale = document.getElementById('scale');
+const ratio = document.getElementById('ratio');
+const page = document.getElementById('page');
+const upBtn = document.getElementById('upload');
+const planStatus = document.getElementById('planStatus');
+const showPlan = (msg, cls = '') => { planStatus.textContent = msg; planStatus.className = cls; };
+
+scale.addEventListener('change', () => {
+  document.getElementById('customRow').hidden = scale.value !== 'custom';
+});
+
+upBtn.addEventListener('click', async () => {
+  const file = pdf.files[0];
+  if (!file) return showPlan('Choose a PDF first.', 'err');
+  const custom = scale.value === 'custom';
+  const r = Number(custom ? ratio.value : scale.value);
+  if (!(r > 0)) return showPlan('Enter a valid custom scale.', 'err');
+  const label = custom ? `1:${r}` : scale.options[scale.selectedIndex].text;
+
+  upBtn.disabled = true;
+  showPlan('Uploading…');
+  try {
+    const q = new URLSearchParams({ name: file.name, scale: label, ratio: r, page: page.value || 1 });
+    const res = await fetch(API + '/api/plan?' + q, {
+      method: 'POST', headers: { 'Content-Type': 'application/pdf' }, body: file,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    showPlan(`Imported "${data.name}" (${data.pages || '?'} page${data.pages === 1 ? '' : 's'}), page ${data.page} at ${data.scale}: `
+      + `sheet is ${data.sheet_ft[0]} × ${data.sheet_ft[1]} ft at that scale, ${data.words} words of text found.`, 'ok');
+    showResult('pdf', data.stem);
+    FramingEditor.load(data.editor, document.getElementById('editor'), updateFramingInfo);
+  } catch (e) {
+    showPlan('Failed: ' + e.message, 'err');
+  } finally {
+    upBtn.disabled = false;
+  }
+});
+
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+  document.getElementById('pdfPanel').hidden = tab.dataset.src !== 'pdf';
+  document.getElementById('sketchPanel').hidden = tab.dataset.src !== 'sketch';
+  document.getElementById('sketchResult').hidden = resultMode !== tab.dataset.src;
+}));
+
+// The framing editor is shared by both import paths; show it with the right helper box.
+let resultMode = null;
+function showResult(mode, stem) {
+  resultMode = mode;
+  currentStem = stem;
+  document.getElementById('sketchResult').hidden = false;
+  document.getElementById('readBox').hidden = mode !== 'sketch';
+  document.getElementById('designBox').hidden = mode !== 'pdf';
+  for (const id of ['readLog', 'designLog', 'keyForm', 'moreBox', 'readLogProgress', 'designLogProgress']) {
+    const el = document.getElementById(id);
+    if (el) el.hidden = true;
+  }
+  for (const id of ['readNotes', 'designNotes', 'keyNotes']) document.getElementById(id).innerHTML = '';
+}
+
+const photo = document.getElementById('photo');
+const procBtn = document.getElementById('process');
+const sketchStatus = document.getElementById('sketchStatus');
+const showSketch = (msg, cls = '') => { sketchStatus.textContent = msg; sketchStatus.className = cls; };
+
+procBtn.addEventListener('click', async () => {
+  const file = photo.files[0];
+  if (!file) return showSketch('Choose a photo first.', 'err');
+  procBtn.disabled = true;
+  document.getElementById('sketchResult').hidden = true;
+  showSketch('Processing sketch… (finding long pen lines, skeletonizing, joining members)');
+  try {
+    const q = new URLSearchParams({ name: file.name, rotate: document.getElementById('rotate').value });
+    const res = await fetch(API + '/api/sketch?' + q, {
+      method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    showResult('sketch', data.stem);
+    FramingEditor.load(data, document.getElementById('editor'), updateFramingInfo);
+    showSketch(`Found ${data.members.length} members on a ${data.grid.x.length} × ${data.grid.y.length} grid. ` +
+      'Check it below, enter grid spacings and sizes, then save.', 'ok');
+  } catch (e) {
+    showSketch('Failed: ' + e.message, 'err');
+  } finally {
+    procBtn.disabled = false;
+  }
+});
+
+// ---- reading sizes & dimensions (OCR first, then the AI agent) ----
+let currentStem = null;
+const readBtn = document.getElementById('readBtn');
+const readLog = document.getElementById('readLog');
+const readNotes = document.getElementById('readNotes');
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Which AI engine runs the agent: Claude Code on the user's login (no key) or the API with a key.
+const engine = () => document.querySelector('input[name=engine]:checked').value;
+document.querySelectorAll('input[name=engine]').forEach(r => r.addEventListener('change', () => {
+  try { localStorage.setItem('engine', engine()); } catch {}
+}));
+(async () => {
+  try { const saved = localStorage.getItem('engine'); if (saved) document.querySelector(`input[name=engine][value=${saved}]`).checked = true; } catch {}
+  try {
+    const e = await (await fetch(API + '/api/engines')).json();
+    if (!e.claude_code) {
+      const cc = document.querySelector('input[name=engine][value=cc]');
+      cc.disabled = true;
+      document.querySelector('input[name=engine][value=api]').checked = true;
+      document.getElementById('engineNote').textContent = '(Claude Code was not found on this PC)';
+    }
+  } catch {}
+})();
+
+// Progress bar shown above a job's log. The agent can't report a true percentage, so
+// it's estimated from elapsed time against a typical duration, nudged up as review
+// rounds complete, and held below 100% until the job really ends.
+function progressFor(logEl) {
+  let box = document.getElementById(logEl.id + 'Progress');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = logEl.id + 'Progress';
+    box.className = 'progress';
+    box.innerHTML = '<div class="progress-track"><div class="progress-bar"></div></div><div class="progress-text hint"></div>';
+    logEl.before(box);
+  }
+  return {
+    bar: box.querySelector('.progress-bar'), text: box.querySelector('.progress-text'),
+    show(on) { box.hidden = !on; },
+  };
+}
+const fmtTime = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+// Start a background job on the server and stream its log into logEl until it ends.
+async function runJob(url, body, logEl) {
+  logEl.hidden = false; logEl.textContent = '';
+  const cc = url.includes('engine=cc');
+  const design = url.startsWith('/api/design');
+  const expected = design ? (cc ? 600 : 360) : (cc ? 90 : 180);   // typical seconds
+  const maxRounds = cc ? 6 : (body && body.instruction ? 2 : 4);
+  const pb = progressFor(logEl);
+  pb.show(true);
+  pb.bar.className = 'progress-bar running';
+  pb.bar.style.width = '2%';
+  pb.text.textContent = 'Starting…';
+  const t0 = Date.now();
+
+  const { id } = await (await fetch(API + url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+  })).json();
+  let job;
+  do {
+    await new Promise(r => setTimeout(r, 1500));
+    job = await (await fetch(API + '/api/job?id=' + id)).json();
+    logEl.textContent = job.log.join('\n') + (job.state === 'running' ? '\n…' : '');
+    logEl.scrollTop = logEl.scrollHeight;
+
+    const secs = (Date.now() - t0) / 1000;
+    const rounds = job.log.filter(l => /members.*problem/.test(l)).length;  // one line per finished round
+    const byTime = 1 - Math.exp(-1.6 * secs / expected);
+    const byRounds = rounds / maxRounds;
+    const pct = Math.min(95, Math.max(2, 100 * Math.max(byTime * 0.9, byRounds * 0.9)));
+    pb.bar.style.width = pct.toFixed(1) + '%';
+    const last = [...job.log].reverse().find(l => l.trim()) || 'Starting…';
+    pb.text.textContent = `${fmtTime(secs)} elapsed · ${rounds ? `round ${rounds} done · ` : ''}${last.trim().slice(0, 90)}`;
+  } while (job.state === 'running');
+
+  const secs = (Date.now() - t0) / 1000;
+  if (job.state === 'done') {
+    pb.bar.className = 'progress-bar done';
+    pb.bar.style.width = '100%';
+    pb.text.textContent = `Finished in ${fmtTime(secs)}.`;
+  } else if (job.state === 'error') {
+    pb.bar.className = 'progress-bar failed';
+    pb.text.textContent = `Stopped after ${fmtTime(secs)}.`;
+  } else {
+    pb.show(false);  // waiting for an API key
+  }
+  return job;
+}
+let afterKey = null;  // what to run once the user has entered an API key
+function askForKey(then) {
+  afterKey = then;
+  document.getElementById('keyForm').hidden = false;
+}
+const noteList = (title, items) => items && items.length
+  ? `<p><b>${title}</b></p><ul>${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : '';
+
+async function readSketch(skipOcr) {
+  if (!currentStem) return;
+  readBtn.disabled = true;
+  readNotes.innerHTML = '';
+  document.getElementById('keyForm').hidden = true;
+  try {
+    const q = new URLSearchParams({ stem: currentStem, skip_ocr: skipOcr ? '1' : '0', engine: engine() });
+    const job = await runJob('/api/read?' + q, null, readLog);
+    if (job.state === 'need_key') {
+      askForKey(() => readSketch(true));
+    } else if (job.state === 'error') {
+      readNotes.innerHTML = `<p class="err">${esc(job.error)}</p>`;
+    } else if (job.result.source === 'ocr') {
+      FramingEditor.applySizes(job.result.sizes);
+      readNotes.innerHTML = '<p class="ok">OCR filled in the sizes it could read. Check them and type the grid spacings.</p>';
+    } else {
+      const r = job.result;
+      FramingEditor.load(r.editor, document.getElementById('editor'), updateFramingInfo);
+      readNotes.innerHTML = '<p class="ok">The agent filled in the framing, sizes and grid spacings. Please review before sending to RISA.</p>'
+        + noteList('Still unsure about', r.doubts) + noteList('Assumed', r.assumptions) + noteList('Text it read', r.labels);
+    }
+  } catch (e) {
+    readNotes.innerHTML = `<p class="err">Failed: ${esc(e.message)}</p>`;
+  } finally {
+    readBtn.disabled = false;
+  }
+}
+readBtn.onclick = () => readSketch(false);
+document.getElementById('saveKey').onclick = async () => {
+  const key = document.getElementById('apiKey').value;
+  const notes = document.getElementById('keyNotes');
+  notes.innerHTML = '<p>Checking the key…</p>';
+  const res = await fetch(API + '/api/key', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }) });
+  const data = await res.json();
+  if (!res.ok) { notes.innerHTML = `<p class="err">${esc(data.error)}</p>`; return; }
+  notes.innerHTML = '';
+  document.getElementById('apiKey').value = '';
+  document.getElementById('keyForm').hidden = true;
+  if (afterKey) afterKey();
+};
+
+// ---- PDF: the AI agent lays out framing, then asks whether to add more members ----
+const designBtn = document.getElementById('designBtn');
+const designLog = document.getElementById('designLog');
+const designNotes = document.getElementById('designNotes');
+const moreBox = document.getElementById('moreBox');
+
+async function designFraming(instruction) {
+  if (!currentStem) return;
+  designBtn.disabled = true;
+  document.getElementById('moreSend').disabled = true;
+  moreBox.hidden = true;
+  designNotes.innerHTML = '';
+  try {
+    const body = instruction ? { instruction, state: FramingEditor.rawState() } : {};
+    const job = await runJob('/api/design?' + new URLSearchParams({ stem: currentStem, engine: engine() }), body, designLog);
+    if (job.state === 'need_key') return askForKey(() => designFraming(instruction));
+    if (job.state === 'error') { designNotes.innerHTML = `<p class="err">${esc(job.error)}</p>`; return; }
+    const r = job.result;
+    FramingEditor.load(r.editor, document.getElementById('editor'), updateFramingInfo);
+    designNotes.innerHTML = `<p class="ok">${instruction ? 'The agent added the members you asked for.' : 'The agent laid out the framing.'} `
+      + 'Review it below: sizes are preliminary.</p>'
+      + noteList('Still unsure about', r.doubts) + noteList('Assumed', r.assumptions) + noteList('Plan text it used', r.labels);
+    // At the end of the trials, ask whether the user wants more members.
+    moreBox.hidden = false;
+    document.getElementById('moreForm').hidden = true;
+    document.getElementById('moreText').value = '';
+  } catch (e) {
+    designNotes.innerHTML = `<p class="err">Failed: ${esc(e.message)}</p>`;
+  } finally {
+    designBtn.disabled = false;
+    document.getElementById('moreSend').disabled = false;
+  }
+}
+designBtn.onclick = () => designFraming(null);
+document.getElementById('moreNo').onclick = () => {
+  moreBox.hidden = true;
+  designNotes.insertAdjacentHTML('beforeend', '<p class="ok">Framing complete. Check it below, then send it to RISA-3D in Step 3.</p>');
+};
+document.getElementById('moreYes').onclick = () => {
+  document.getElementById('moreForm').hidden = false;
+  document.getElementById('moreText').focus();
+};
+document.getElementById('moreSend').onclick = () => {
+  const text = document.getElementById('moreText').value.trim();
+  if (text) designFraming(text);
+};
+
+// ---- send to RISA-3D ----
+document.getElementById('toRisa').addEventListener('click', async () => {
+  const st = document.getElementById('risaStatus');
+  const show = (m, c = '') => { st.textContent = m; st.className = c; };
+  if (!currentStem) return show('Import a framing plan in Step 2 first.', 'err');
+  const sum = FramingEditor.summary();
+  if (sum.loose && !confirm(`${sum.loose} member end(s) are not connected. Send anyway?`)) return;
+  if (sum.unset && !confirm(`${sum.unset} grid spacing(s) are still placeholders. Send anyway?`)) return;
+  if (sum.nosize && !confirm(`${sum.nosize} member(s) have no size (they'll get W8X10). Send anyway?`)) return;
+  if (!sum.supports && !confirm('No column points are marked (use the Column tool), so the floor will have no supports. Send anyway?')) return;
+
+  // Ask whether to add columns, and if so the story height and column size.
+  const dlg = document.getElementById('risaDialog');
+  const yes = dlg.querySelector('input[value=yes]');
+  yes.disabled = !sum.supports;
+  if (!sum.supports) dlg.querySelector('input[value=no]').checked = true;
+  document.getElementById('colInfo').textContent = sum.supports
+    ? `${sum.supports} column point${sum.supports > 1 ? 's are' : ' is'} marked on the plan.`
+    : 'No column points are marked on the plan, so columns can\'t be added.';
+  const syncFields = () => { document.getElementById('colFields').hidden = !yes.checked; };
+  dlg.querySelectorAll('input[name=addCols]').forEach(r => r.onchange = syncFields);
+  syncFields();
+  dlg.returnValue = '';
+  dlg.showModal();
+  await new Promise(r => dlg.addEventListener('close', r, { once: true }));
+  if (dlg.returnValue !== 'send') return;
+
+  const frame = { ...FramingEditor.exportFrame(), title: 'Framing from sketch' };
+  if (yes.checked) {
+    const height = parseFloat(document.getElementById('storyHeight').value);
+    const size = document.getElementById('colSize').value.trim().toUpperCase().replace(/\s+/g, '');
+    if (!(height > 0)) return show('Enter a story height greater than 0.', 'err');
+    if (!/^W\d+X\d+(\.\d+)?$/.test(size)) return show('Enter a column size like W10X33.', 'err');
+    frame.columns = { height, size, base: document.getElementById('colBase').value };
+  }
+  show('Writing the RISA-3D model and opening RISA-3D…');
+  try {
+    const res = await fetch(API + '/api/risa', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(frame),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    show(`RISA-3D is opening ${data.path}`, 'ok');
+  } catch (e) {
+    show('Failed: ' + e.message, 'err');
+  }
+});
+
+// ---- framing editor wiring ----
+let lastTable = '';
+function updateFramingInfo(sum) {
+  const parts = [`${sum.members.length} members`, `${sum.nodes} nodes`];
+  parts.push(sum.loose ? `<span class="err">${sum.loose} loose end${sum.loose > 1 ? 's' : ''}</span>`
+                       : '<span class="ok">all members connected</span>');
+  if (sum.unset) parts.push(`<span class="err">${sum.unset} grid spacing${sum.unset > 1 ? 's' : ''} not entered</span>`);
+  if (sum.nosize) parts.push(`${sum.nosize} without size`);
+  document.getElementById('feSummary').innerHTML = parts.join(' · ');
+  document.getElementById('feSelInfo').textContent = sum.selected.length ? `${sum.selected.length} selected` : '';
+
+  const html = sum.members.map(m => `<tr data-id="${m.id}" class="${sum.selected.includes(m.id) ? 'sel' : ''}">
+      <td>M${m.id}</td><td>${m.i}</td><td>${m.j}</td>
+      <td><input value="${m.size}" list="fe-sizes" data-id="${m.id}" placeholder="—"></td><td>${m.lengthTxt}</td></tr>`).join('');
+  if (html !== lastTable) { document.getElementById('members').innerHTML = html; lastTable = html; }
+}
+document.getElementById('members').addEventListener('change', e => {
+  if (e.target.dataset.id) FramingEditor.setSize(e.target.value, [+e.target.dataset.id]);
+});
+document.getElementById('members').addEventListener('click', e => {
+  const tr = e.target.closest('tr');
+  if (tr && e.target.tagName !== 'INPUT') FramingEditor.select([+tr.dataset.id]);
+});
+document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tool').forEach(t => t.classList.toggle('active', t === b));
+  FramingEditor.setTool(b.dataset.tool);
+}));
+document.getElementById('feUndo').onclick = () => FramingEditor.undo();
+document.getElementById('feDelete').onclick = () => FramingEditor.deleteSelected();
+document.getElementById('feConnect').onclick = () => {
+  const n = FramingEditor.connectLoose();
+  document.getElementById('frameStatus').textContent = `Connected ${n} loose end${n === 1 ? '' : 's'}.`;
+};
+document.getElementById('fePhoto').onchange = e => FramingEditor.togglePhoto(e.target.checked);
+document.getElementById('feSelectAll').onclick = () => FramingEditor.selectAll();
+const feSize = document.getElementById('feSize');
+const applySize = () => { FramingEditor.setSize(feSize.value); FramingEditor.setDefaultSize(feSize.value); };
+document.getElementById('feApply').onclick = applySize;
+feSize.addEventListener('keydown', e => { if (e.key === 'Enter') applySize(); });
+
+document.getElementById('saveFrame').addEventListener('click', async () => {
+  const st = document.getElementById('frameStatus');
+  const sum = FramingEditor.summary();
+  if (sum.loose && !confirm(`${sum.loose} member end(s) are not connected. Save anyway?`)) return;
+  if (sum.unset && !confirm(`${sum.unset} grid spacing(s) are still placeholders. Save anyway?`)) return;
+  try {
+    const res = await fetch(API + '/api/frame', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(FramingEditor.exportFrame()),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    st.textContent = 'Saved: ' + data.path; st.className = 'ok';
+  } catch (e) {
+    st.textContent = 'Save failed: ' + e.message; st.className = 'err';
+  }
+});
+
+loadInstalls();
+</script>
+</body>
+</html>

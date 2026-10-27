@@ -1,0 +1,9 @@
+# Python packages the app imports. Versions are not pinned yet.
+anthropic
+pydantic
+numpy
+opencv-python
+scikit-image
+skan
+easyocr
+PyMuPDF

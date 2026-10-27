@@ -1,0 +1,7 @@
+# The app's working files: uploads and job folders created while it runs
+app/uploads/
+__pycache__/
+*.pyc
+# Never commit keys or local settings
+.env
+config.json
