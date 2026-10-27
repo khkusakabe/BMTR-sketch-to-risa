@@ -184,9 +184,10 @@
   function readerCard() {
     const has = !!SketchReader.getKey();
     return `<div class="card" id="reader">
-      <b>Read the sketch</b>
+      <b>Read the sketch</b> <span class="meta">optional</span>
       <div class="note">Claude reads the members, labels, size table, dimensions, fixed-end triangles and base marks on this sheet and fills in the inputs below. Check every value before you download.</div>
-      <div id="keyRow" ${has ? "hidden" : ""} style="margin-top:10px">
+      <div class="note" style="margin-top:6px">This needs your own Anthropic API key. No key? Type the values into the form below and download, or have Claude Desktop or Claude Code read the sketch with the team's <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/tree/main/mcp">MCP server</a>, no key needed.</div>
+      <div id="keyRow" hidden style="margin-top:10px">
         <label class="f">Anthropic API key <span>kept in this browser only; the sheet goes straight from this page to Anthropic</span>
           <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
       </div>
