@@ -34,3 +34,4 @@ The steps, file paths, commands and gotchas Claude should follow.
 | Skill | What it does | Added by |
 |---|---|---|
 | `sketch-to-risa-dev` | How this repo fits together, how to run it and test with the samples, and the team's ground rules | Kei |
+| `floor-plan-columns` | Finds or lays out columns on a 1-story PDF floor plan, frames the roof with steel girders and beams, and writes a RISA-3D `.r3d` plus a "Column" web app. Its RISA template is held back until the team confirms it can be public | (author to confirm) |

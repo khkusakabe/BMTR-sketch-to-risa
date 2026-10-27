@@ -1,0 +1,635 @@
+<title>Column</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: drafting-table tool. Inputs rail on the left, plan sheet + column schedule on the right; stacks on phones. */
+:root {
+  --paper: #f4f5f2;      /* sheet ground, faint green-grey like vellum */
+  --panel: #ffffff;
+  --ink: #1b2328;
+  --muted: #5d6a70;
+  --rule: #d5dbd8;
+  --accent: #1f5f7a;     /* drafting blue: grid, actions */
+  --exist: #2c7a5b;      /* drawn columns */
+  --new: #c4502a;        /* proposed in wall */
+  --warn: #b3261e;       /* exposed */
+  --manual: #6b4fa3;     /* edited by hand */
+  --open: #e08a2c;       /* openings */
+  --girder: #8a2f6e;     /* roof girders */
+  --beam: #3d6fb0;       /* roof beams */
+  --wall: #8a9590;
+  --chip-bg: #eef1ef;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans Condensed", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #121719; --panel: #1a2124; --ink: #e3e9e6; --muted: #98a6a2; --rule: #2d373a;
+  --accent: #6db3d3; --exist: #5cc297; --new: #ef8a62; --warn: #ff7b72; --manual: #b49cf0; --open: #f0a54d; --wall: #6f7c78; --chip-bg: #222b2e; --girder: #e07cc4; --beam: #7fa9e6;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #121719; --panel: #1a2124; --ink: #e3e9e6; --muted: #98a6a2; --rule: #2d373a;
+  --accent: #6db3d3; --exist: #5cc297; --new: #ef8a62; --warn: #ff7b72; --manual: #b49cf0; --open: #f0a54d; --wall: #6f7c78; --chip-bg: #222b2e; --girder: #e07cc4; --beam: #7fa9e6;
+  color-scheme: dark; }
+html, body { height: auto; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 32px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px;
+  padding-block: 20px 14px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+.brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; min-width: 0; }
+.brand h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.01em; line-height: 1; }
+.meta { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.meta b { color: var(--ink); font-weight: 500; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--rule); background: var(--panel); padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.small { padding: 4px 10px; font-size: 13px; font-weight: 500; }
+.btn:disabled { opacity: .5; cursor: default; }
+.toast { font-size: 13px; color: var(--muted); min-height: 1.4em; margin-top: 6px; text-align: right; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.rail { display: grid; gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+.panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; padding-block: 7px; border-top: 1px solid var(--rule); }
+.field:first-of-type { border-top: 0; }
+.field label { font-weight: 500; }
+.field .hint { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.unit { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.unit input { width: 72px; text-align: right; font-family: var(--mono); padding: 5px 7px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); font-variant-numeric: tabular-nums; }
+.legend { display: grid; gap: 6px; font-size: 13.5px; }
+.legend label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.sw { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+.sw.sq { border-radius: 2px; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--chip-bg); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; display: inline-block; }
+.c-existing { color: var(--exist); } .c-wall { color: var(--new); } .c-exposed { color: var(--warn); } .c-blocked { color: var(--warn); } .c-manual { color: var(--manual); }
+
+.sheet { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.sheet-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+.sheet-bar h2 { font-size: 17px; }
+.plan-wrap { overflow: auto; max-height: 78vh; }
+svg.plan { display: block; width: 100%; height: auto; min-width: 520px; background: var(--panel); }
+svg.plan text { font-family: var(--display); fill: var(--ink); }
+svg.plan .col { cursor: pointer; }
+svg.plan .col.sel circle { stroke-width: 3; }
+
+.sched { margin-top: 20px; }
+.sched-bar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.sched-bar h2 { font-size: 20px; }
+.table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: middle; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--paper); position: sticky; top: 0; }
+td.num, th.num { text-align: right; }
+td .ft { display: block; font-family: var(--mono); font-size: 11.5px; color: var(--muted); text-align: right; }
+td input { width: 76px; text-align: right; font-family: var(--mono); padding: 4px 6px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); font-variant-numeric: tabular-nums; }
+td select { padding: 4px 6px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); }
+tr.sel td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+td.id { font-family: var(--mono); font-weight: 500; }
+td.grid { font-family: var(--mono); }
+td.note { color: var(--muted); font-size: 13px; min-width: 220px; }
+.x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; }
+.x:hover { color: var(--warn); }
+details.gridpanel summary { cursor: pointer; font-weight: 600; }
+.gridrows { display: grid; gap: 6px; margin-top: 10px; font-size: 13.5px; }
+.gridrows .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gridrows .src { font-size: 11.5px; color: var(--muted); }
+.sel { padding: 5px 7px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); max-width: 170px; }
+.frsum { margin-top: 10px; display: grid; gap: 6px; font-size: 13px; }
+.frsum .warn { color: var(--warn); }
+.frsum table { min-width: 0; font-size: 12.5px; }
+.frsum td, .frsum th { padding: 4px 6px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab { border: 1px solid var(--rule); background: var(--paper); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-weight: 600; font-size: 13.5px; }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.note-banner { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.note-banner button { background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; }
+</style>
+
+<header class="top">
+  <div class="brand">
+    <h1>Column</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+  <div>
+    <div class="actions">
+      <button class="btn" id="copyDxf" type="button">Copy DXF</button>
+      <button class="btn primary" id="saveDxf" type="button">Download DXF (.zip)</button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="rail">
+    <section class="panel" aria-labelledby="rulesH">
+      <h2 id="rulesH">Layout rules</h2>
+      <div class="field">
+        <label for="maxSpacing">Max column spacing</label>
+        <span class="unit"><input id="maxSpacing" type="number" min="5" step="1" inputmode="decimal"> ft</span>
+        <span class="hint">Along a grid line; longer bays get evenly spaced extra columns.</span>
+      </div>
+      <div class="field">
+        <label for="maxShift">Max shift into a wall</label>
+        <span class="unit"><input id="maxShift" type="number" min="0" step="0.5" inputmode="decimal"> ft</span>
+        <span class="hint">How far a column may move off its grid point to hide in a wall.</span>
+      </div>
+      <div class="field">
+        <label for="clearance">Opening clearance</label>
+        <span class="unit"><input id="clearance" type="number" min="0" step="1" inputmode="decimal"> in</span>
+        <span class="hint">From the edge of door and window openings.</span>
+      </div>
+      <div class="field" id="diaRow">
+        <label for="diaIn">Column diameter</label>
+        <span class="unit"><input id="diaIn" type="number" min="1" step="0.5" inputmode="decimal"> in</span>
+      </div>
+      <div class="note-banner" id="modeNote"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="storyH">
+      <h2 id="storyH">Building</h2>
+      <div class="field">
+        <label for="heightFt">Story height</label>
+        <span class="unit"><input id="heightFt" type="number" min="6" step="0.5" inputmode="decimal"> ft</span>
+        <span class="hint">Floor to top of roof steel. Columns rise to this height and the roof framing sits on top.</span>
+      </div>
+      <div class="field" id="shapeRow" hidden>
+        <label for="colShape">Column shape</label>
+        <select id="colShape" class="sel"></select>
+        <span class="hint">Used for the proposed columns in the RISA-3D model (drawn W-columns too). Girders and beams use the sizes from the roof framing.</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="frameH">
+      <h2 id="frameH">Roof framing</h2>
+      <div class="field">
+        <label for="frOn">Frame the roof</label>
+        <input id="frOn" type="checkbox">
+      </div>
+      <div class="field">
+        <label for="frDir">Girders run</label>
+        <select id="frDir" class="sel">
+          <option value="auto">Short direction (auto)</option>
+          <option value="x">Left-right</option>
+          <option value="y">Up-down</option>
+        </select>
+        <span class="hint">Girders span between columns; beams span between girders.</span>
+      </div>
+      <div class="field">
+        <label for="frMin">Beam spacing, min</label>
+        <span class="unit"><input id="frMin" type="number" min="2" step="0.5" inputmode="decimal"> ft</span>
+      </div>
+      <div class="field">
+        <label for="frMax">Beam spacing, max</label>
+        <span class="unit"><input id="frMax" type="number" min="2" step="0.5" inputmode="decimal"> ft</span>
+        <span class="hint">Each bay is split evenly within this range.</span>
+      </div>
+      <div class="field">
+        <label for="frColBeams">Beams on column lines</label>
+        <input id="frColBeams" type="checkbox">
+        <span class="hint">Column-to-column beams along the lines the girders frame into.</span>
+      </div>
+      <div class="field">
+        <label for="frOpt">Optimize for lightest steel</label>
+        <input id="frOpt" type="checkbox">
+        <span class="hint">Sizes every member and picks the beam count per bay with the least steel.</span>
+      </div>
+      <div class="field">
+        <label for="frFlip">Let girders run the long way</label>
+        <input id="frFlip" type="checkbox">
+        <span class="hint">Only when that saves more than 3% steel.</span>
+      </div>
+      <div class="field">
+        <label for="rfDead">Roof dead load</label>
+        <span class="unit"><input id="rfDead" type="number" min="0" step="1" inputmode="decimal"> psf</span>
+      </div>
+      <div class="field">
+        <label for="rfLive">Roof live load</label>
+        <span class="unit"><input id="rfLive" type="number" min="0" step="1" inputmode="decimal"> psf</span>
+        <span class="hint">Preliminary W-shape sizes: Fy 50 ksi, LRFD, L/240 live and L/180 total deflection.</span>
+      </div>
+      <div class="frsum" id="frSum"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="showH">
+      <h2 id="showH">Show on plan</h2>
+      <div class="legend">
+        <label><input type="checkbox" id="showUnder" checked> Original drawing</label>
+        <label><input type="checkbox" id="showWalls" checked> <span class="sw sq" style="color:var(--wall)"></span> Walls read from plan</label>
+        <label><input type="checkbox" id="showOpen" checked> <span class="sw sq" style="color:var(--open)"></span> Openings and windows</label>
+        <label><input type="checkbox" id="showFrame" checked> Roof framing</label>
+      </div>
+      <div class="legend" style="margin-top:12px">
+        <span class="c-existing" style="display:flex;gap:8px;align-items:center"><span class="sw"></span><span style="color:var(--ink)">Drawn on plan</span></span>
+        <span class="c-wall" style="display:flex;gap:8px;align-items:center"><span class="sw"></span><span style="color:var(--ink)">Proposed, in wall</span></span>
+        <span class="c-exposed" style="display:flex;gap:8px;align-items:center"><span class="sw"></span><span style="color:var(--ink)">Proposed, exposed</span></span>
+        <span class="c-manual" style="display:flex;gap:8px;align-items:center"><span class="sw"></span><span style="color:var(--ink)">Placed by hand</span></span>
+        <span style="display:flex;gap:8px;align-items:center"><span style="width:18px;height:4px;background:var(--girder);flex:none"></span>Girder</span>
+        <span style="display:flex;gap:8px;align-items:center"><span style="width:18px;height:2px;background:var(--beam);flex:none"></span>Beam</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <details class="gridpanel" id="gridPanel">
+        <summary>Grid spacing</summary>
+        <div class="gridrows" id="gridRows"></div>
+      </details>
+    </section>
+  </aside>
+
+  <main style="min-width:0">
+    <section class="sheet" aria-labelledby="planH">
+      <div class="sheet-bar">
+        <h2 id="planH">Column plan</h2>
+        <div class="tabs" id="wingTabs" role="tablist" aria-label="Wings" hidden></div>
+        <div class="summary" id="summary" style="margin:0"></div>
+      </div>
+      <div class="plan-wrap"><svg class="plan" id="plan" role="img" aria-label="Plan with grid lines and columns"></svg></div>
+    </section>
+
+    <section class="sched" aria-labelledby="schedH">
+      <div class="sched-bar">
+        <h2 id="schedH">Column list</h2>
+        <div class="actions">
+          <button class="btn small" id="addCol" type="button">Add column</button>
+          <button class="btn small" id="rerun" type="button">Re-run layout</button>
+          <button class="btn small" id="reset" type="button">Reset to plan</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Grid</th><th>Status</th>
+            <th>From line</th><th class="num">Offset X (in)</th>
+            <th>From line</th><th class="num">Offset Y (in)</th>
+            <th>Notes</th><th aria-label="Remove"></th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="note-banner">Offsets are measured from the grid line in inches: X positive to the right, Y positive up the sheet.</p>
+    </section>
+  </main>
+</div>
+
+<script>/*__ENGINE__*/</script>
+<script id="modelData" type="application/json">/*__MODEL__*/</script>
+<script>
+(function () {
+  "use strict";
+  const E = window.ColumnEngine;
+  // One model per wing (grid system). A building with wings at different angles has several;
+  // the app edits one wing at a time and the DXF combines them all.
+  const DATA = JSON.parse(document.getElementById("modelData").textContent);
+  const ORIGINALS = Array.isArray(DATA.wings) ? DATA.wings : [DATA];
+  const KEY = "column-app:" + (ORIGINALS[0].project && ORIGINALS[0].project.name);
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const $ = (id) => document.getElementById(id);
+  const norm = (m) => {
+    m.framing = Object.assign({}, E.FRAMING_DEFAULTS, m.framing || {});
+    m.roof = Object.assign({}, E.ROOF_DEFAULTS, m.roof || {});
+    return m;
+  };
+  let wings = clone(ORIGINALS).map(norm), active = 0;
+  let model = wings[0];
+  let selected = null;
+
+  function strip(m) { const c = clone(m); if (c.underlay) delete c.underlay.src; return c; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(wings.map(strip))); } catch (e) {} }
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (Array.isArray(d) && d.length === ORIGINALS.length && d.every((w) => w && w.grid)) {
+      d.forEach((w, i) => (w.underlay = ORIGINALS[i].underlay));
+      wings = d.map(norm); model = wings[0];
+    }
+  } catch (e) {}
+
+  const kind = (c) => (c.status === "proposed" ? c.placement : c.status);
+  const KLABEL = { existing: "Drawn on plan", wall: "In wall", exposed: "Exposed", blocked: "Blocks opening", manual: "Placed by hand" };
+  const toast = (msg) => { $("toast").textContent = msg; };
+
+  // ---------------------------------------------------------------- inputs
+  const inputs = [["maxSpacing", "rules", "maxSpacingFt"], ["maxShift", "rules", "maxShiftFt"], ["clearance", "rules", "clearanceIn"],
+                  ["diaIn", "column", "diaIn"], ["heightFt", "column", "heightFt"]];
+
+  let frCache = null;
+  const getFraming = () => (frCache = frCache || E.resolveFraming(model, model.columns));
+  function fillInputs() {
+    for (const [id, grp, k] of inputs) $(id).value = model[grp][k];
+    const f = model.framing;
+    $("frOn").checked = f.on; $("frDir").value = f.dir; $("frMin").value = f.beamMinFt; $("frMax").value = f.beamMaxFt; $("frColBeams").checked = f.beamsAtColumns;
+    $("frOpt").checked = f.optimize; $("frFlip").checked = f.allowFlip; $("rfDead").value = model.roof.deadPsf; $("rfLive").value = model.roof.livePsf;
+  }
+  const frInputs = [["frOn", "on", "check"], ["frDir", "dir", "val"], ["frMin", "beamMinFt", "num"], ["frMax", "beamMaxFt", "num"], ["frColBeams", "beamsAtColumns", "check"],
+                    ["frOpt", "optimize", "check"], ["frFlip", "allowFlip", "check"]];
+  for (const [id, k] of [["rfDead", "deadPsf"], ["rfLive", "livePsf"]]) $(id).addEventListener("input", () => {
+    const v = parseFloat($(id).value); if (!(v >= 0)) return; model.roof[k] = v; save(); render();
+  });
+  for (const [id, k, t] of frInputs) $(id).addEventListener(t === "num" ? "input" : "change", () => {
+    const v = t === "check" ? $(id).checked : t === "num" ? parseFloat($(id).value) : $(id).value;
+    if (t === "num" && !(v > 0)) return;
+    model.framing[k] = v;
+    if (model.framing.beamMinFt > model.framing.beamMaxFt) { toast("Minimum beam spacing is larger than the maximum."); return; }
+    save(); render();
+  });
+  let timer = null;
+  for (const [id, grp, k] of inputs) {
+    $(id).addEventListener("input", () => {
+      const v = parseFloat($(id).value);
+      if (!(v >= 0)) return;
+      model[grp][k] = v;
+      if (id === "heightFt") wings.forEach((w) => (w.column.heightFt = v));   // story height is building-wide
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (grp === "rules" || id === "diaIn") relayout(); else { save(); render(); } }, 250);
+    });
+  }
+  function relayout() {
+    if (model.mode === "found") { save(); render(); toast("Plan has drawn columns; rules apply when you re-run the layout."); return; }
+    model.columns = E.layout(model, model.rules, model.column);
+    save(); render(); toast("Layout updated.");
+  }
+
+  // ---------------------------------------------------------------- plan
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+  function renderPlan() {
+    const svg = $("plan"); svg.textContent = "";
+    const gx = E.lines(model, "x"), gy = E.lines(model, "y");
+    const pts = model.columns.map((c) => E.absolute(model, c));
+    const xs = gx.map((g) => g.pos).concat(pts.map((p) => p.x)), ys = gy.map((g) => g.pos).concat(pts.map((p) => p.y));
+    const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 240);
+    const ext = Math.max(60, span * 0.06), bub = Math.max(18, span / 55);
+    const minX = Math.min(...xs) - ext - 2.4 * bub, maxX = Math.max(...xs) + ext + bub;
+    const minY = Math.min(...ys) - ext - bub, maxY = Math.max(...ys) + ext + 2.4 * bub;
+    const W = maxX - minX, H = maxY - minY;
+    const sx = (x) => x - minX, sy = (y) => maxY - y;
+    svg.setAttribute("viewBox", "0 0 " + W.toFixed(1) + " " + H.toFixed(1));
+    const css = getComputedStyle(document.documentElement), tok = (n) => css.getPropertyValue(n).trim();
+
+    const u = model.underlay;
+    if (u && u.src && $("showUnder").checked) {
+      el("image", { href: u.src, x: sx(u.x0), y: sy(u.y1), width: u.x1 - u.x0, height: u.y1 - u.y0, preserveAspectRatio: "none", opacity: 0.55 }, svg);
+    }
+    if ($("showWalls").checked) for (const w of model.walls || [])
+      el("rect", { x: sx(w.x0), y: sy(w.y1), width: Math.max(w.x1 - w.x0, 1), height: Math.max(w.y1 - w.y0, 1), fill: tok("--wall"), "fill-opacity": 0.35 }, svg);
+    if ($("showOpen").checked) for (const o of model.openings || [])
+      el("rect", { x: sx(o.x0), y: sy(o.y1), width: Math.max(o.x1 - o.x0, 2), height: Math.max(o.y1 - o.y0, 2), fill: tok("--open"), "fill-opacity": 0.45 }, svg);
+
+    const gTop = Math.max(...ys) + ext, gBot = Math.min(...ys) - ext, gL = Math.min(...xs) - ext, gR = Math.max(...xs) + ext;
+    const lw = span / 900;
+    for (const g of gx) {
+      el("line", { x1: sx(g.pos), y1: sy(gBot), x2: sx(g.pos), y2: sy(gTop), stroke: tok("--accent"), "stroke-width": lw * 1.2, "stroke-dasharray": (lw * 14) + " " + (lw * 6) }, svg);
+      el("circle", { cx: sx(g.pos), cy: sy(gTop + bub), r: bub, fill: tok("--panel"), stroke: tok("--accent"), "stroke-width": lw * 2 }, svg);
+      const t = el("text", { x: sx(g.pos), y: sy(gTop + bub), "font-size": bub * 1.05, "text-anchor": "middle", "dominant-baseline": "central", "font-weight": 600 }, svg); t.textContent = g.label;
+    }
+    for (const g of gy) {
+      el("line", { x1: sx(gL), y1: sy(g.pos), x2: sx(gR), y2: sy(g.pos), stroke: tok("--accent"), "stroke-width": lw * 1.2, "stroke-dasharray": (lw * 14) + " " + (lw * 6) }, svg);
+      el("circle", { cx: sx(gL - bub), cy: sy(g.pos), r: bub, fill: tok("--panel"), stroke: tok("--accent"), "stroke-width": lw * 2 }, svg);
+      const t = el("text", { x: sx(gL - bub), y: sy(g.pos), "font-size": bub * 1.05, "text-anchor": "middle", "dominant-baseline": "central", "font-weight": 600 }, svg); t.textContent = g.label;
+    }
+    const fr = getFraming();
+    if ($("showFrame").checked) {
+      for (const m of fr.beams) el("line", { x1: sx(m.x1), y1: sy(m.y1), x2: sx(m.x2), y2: sy(m.y2), stroke: tok("--beam"), "stroke-width": lw * 1.6 }, svg);
+      for (const m of fr.girders) {
+        const gl = el("line", { x1: sx(m.x1), y1: sy(m.y1), x2: sx(m.x2), y2: sy(m.y2), stroke: tok("--girder"), "stroke-width": lw * 4.5 }, svg);
+        const ti = el("title", {}, gl); ti.textContent = m.id + " " + (m.size || "") + " · " + m.from + " to " + m.to + " · span " + E.ftin(m.span);
+      }
+    }
+    const colr = { existing: tok("--exist"), wall: tok("--new"), exposed: tok("--warn"), blocked: tok("--warn"), manual: tok("--manual") };
+    const rad = Math.max((model.column.diaIn || 6) / 2, span / 160);
+    model.columns.forEach((c, i) => {
+      const p = pts[i], k = kind(c), grp = el("g", { class: "col" + (selected === c.id ? " sel" : ""), tabindex: 0 }, svg);
+      el("circle", { cx: sx(p.x), cy: sy(p.y), r: rad, fill: k === "exposed" ? tok("--panel") : colr[k], "fill-opacity": k === "exposed" ? 1 : 0.85, stroke: colr[k], "stroke-width": lw * 2.5 }, grp);
+      const t = el("text", { x: sx(p.x) + rad * 1.4, y: sy(p.y) - rad * 1.2, "font-size": bub * 0.62, "font-weight": 600 }, grp); t.textContent = c.id;
+      t.setAttribute("style", "fill:" + colr[k]);
+      const ti = el("title", {}, grp); ti.textContent = c.id + " · " + E.gridLabel(model, p.x, p.y) + " · " + KLABEL[k];
+      const pick = () => { selected = c.id; render(); const r = document.querySelector('tr[data-id="' + c.id + '"]'); if (r) r.scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+      grp.addEventListener("click", pick);
+      grp.addEventListener("keydown", (e) => { if (e.key === "Enter") pick(); });
+    });
+  }
+
+  // ---------------------------------------------------------------- table
+  function renderTable() {
+    const tb = $("rows"); tb.textContent = "";
+    const gx = E.lines(model, "x"), gy = E.lines(model, "y");
+    const opts = (lines, v) => lines.map((g) => '<option' + (g.label === v ? " selected" : "") + ">" + g.label + "</option>").join("");
+    for (const c of model.columns) {
+      const p = E.absolute(model, c), k = kind(c);
+      const tr = document.createElement("tr"); tr.dataset.id = c.id; if (selected === c.id) tr.className = "sel";
+      tr.innerHTML =
+        '<td class="id">' + c.id + '</td><td class="grid">' + E.gridLabel(model, p.x, p.y) + "</td>" +
+        '<td><span class="chip c-' + k + '"><i></i>' + KLABEL[k] + "</span></td>" +
+        '<td><select data-f="refX" aria-label="' + c.id + ' X reference line">' + opts(gx, c.refX) + "</select></td>" +
+        '<td class="num"><input data-f="dx" type="number" step="0.25" value="' + c.dx + '" aria-label="' + c.id + ' X offset inches"><span class="ft">' + E.ftin(c.dx) + "</span></td>" +
+        '<td><select data-f="refY" aria-label="' + c.id + ' Y reference line">' + opts(gy, c.refY) + "</select></td>" +
+        '<td class="num"><input data-f="dy" type="number" step="0.25" value="' + c.dy + '" aria-label="' + c.id + ' Y offset inches"><span class="ft">' + E.ftin(c.dy) + "</span></td>" +
+        '<td class="note"></td><td><button class="x" type="button" aria-label="Remove ' + c.id + '">×</button></td>';
+      tr.querySelector(".note").textContent = c.note || "";
+      tr.querySelectorAll("[data-f]").forEach((inp) => inp.addEventListener("change", () => {
+        const f = inp.dataset.f;
+        c[f] = f === "dx" || f === "dy" ? parseFloat(inp.value) || 0 : inp.value;
+        if (c.status === "proposed") { if (c.target) (model.skipTargets = model.skipTargets || []).push(c.target); c.status = "manual"; delete c.placement; }
+        c.note = c.status === "existing" ? "Drawn on plan (position edited)" : "Placed by hand";
+        selected = c.id; save(); render();
+      }));
+      tr.querySelector(".x").addEventListener("click", () => {
+        if (c.target) (model.skipTargets = model.skipTargets || []).push(c.target);
+        model.columns = model.columns.filter((o) => o !== c);
+        save(); render(); toast(c.id + " removed.");
+      });
+      tr.addEventListener("click", (e) => { if (e.target.closest("input,select,button")) return; selected = c.id; render(); });
+      tb.appendChild(tr);
+    }
+  }
+
+  function renderGrid() {
+    const box = $("gridRows"); box.textContent = "";
+    for (const axis of ["x", "y"]) {
+      const lines = E.lines(model, axis);
+      for (let i = 0; i + 1 < lines.length; i++) {
+        const a = lines[i], b = lines[i + 1], row = document.createElement("div"); row.className = "row";
+        const id = "sp-" + axis + "-" + i;
+        row.innerHTML = '<label for="' + id + '">' + a.label + " to " + b.label + ' <span class="src">' + (b.source === "dimension" ? "from dimension" : b.source === "edited" ? "edited" : "measured") + "</span></label>" +
+          '<span class="unit"><input id="' + id + '" type="number" step="1" value="' + (b.pos - a.pos) + '"> in</span>';
+        row.querySelector("input").addEventListener("change", (e) => {
+          const v = parseFloat(e.target.value); if (!(v > 0)) return;
+          const delta = v - (b.pos - a.pos);
+          for (const g of model.grid[axis]) if (g.pos >= b.pos) g.pos += delta;
+          b.source = "edited";
+          if (model.mode !== "found") model.columns = E.layout(model, model.rules, model.column);
+          save(); render(); toast("Grid updated.");
+        });
+        box.appendChild(row);
+      }
+    }
+  }
+
+  function renderFraming() {
+    const box = $("frSum"); box.textContent = "";
+    if (!model.framing.on) { box.textContent = "Roof framing is off; the DXF will have columns only."; return; }
+    const fr = getFraming(), st = fr.steel;
+    const add = (html, cls) => { const d = document.createElement("div"); if (cls) d.className = cls; d.innerHTML = html; box.appendChild(d); return d; };
+    const tally = (ms) => Object.entries(ms.reduce((t, m) => ((t[m.size] = (t[m.size] || 0) + 1), t), {})).map(([k, v]) => v + " × " + k).join(", ");
+    add("<b>" + fr.girders.length + " girders</b> (" + (fr.dir === "x" ? "left-right" : "up-down") + "), <b>" + fr.beams.length + " beams</b>, at +" + E.ftin(model.column.heightFt * 12) + ".");
+    if (st) add("Steel <b>" + Math.round(st.lbs).toLocaleString("en-US") + " lb</b> = " + st.psf.toFixed(2) + " psf over " + Math.round(st.area).toLocaleString("en-US") + " sf.");
+    if (fr.girders.length) add("Girders: " + tally(fr.girders) + "<br>Beams: " + tally(fr.beams));
+    const opt = fr.optimization;
+    if (opt && opt.results.length) {
+      const t = document.createElement("table");
+      t.innerHTML = "<thead><tr><th>Girders run</th><th class='num'>Beam spacing</th><th class='num'>Steel</th></tr></thead>";
+      const tb = document.createElement("tbody");
+      for (const r of opt.results) {
+        const sp = [...new Set(r.framing.bays.map((b) => E.ftin(b.spacing)))].slice(0, 2).join(", ");
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + (r.dir === "x" ? "Left-right" : "Up-down") + (r === opt.best ? " ✓" : "") + "</td><td class='num'>" + sp + "</td><td class='num'>" + Math.round(r.steel.lbs).toLocaleString("en-US") + " lb</td>";
+        tb.appendChild(tr);
+      }
+      t.appendChild(tb);
+      const wrap = document.createElement("div"); wrap.style.overflowX = "auto"; wrap.appendChild(t); box.appendChild(wrap);
+      if (opt.note) add(opt.note);
+    }
+    if (fr.bays.length) {
+      const t = document.createElement("table");
+      t.innerHTML = "<thead><tr><th>Bay</th><th class='num'>Girder</th><th class='num'>Beam span</th><th class='num'>Spacing</th></tr></thead>";
+      const tb = document.createElement("tbody");
+      fr.bays.forEach((b, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + (i + 1) + "</td><td class='num'>" + E.ftin(b.width) + "</td><td class='num'>" + E.ftin(b.span) + "</td><td class='num'" + (b.ok ? "" : " style='color:var(--warn)'") + ">" + E.ftin(b.spacing) + "</td>";
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb);
+      const wrap = document.createElement("div"); wrap.style.overflowX = "auto"; wrap.appendChild(t); box.appendChild(wrap);
+    }
+    for (const w of fr.warnings) add(w, "warn");
+    if (st && st.failed) add(st.failed + " members need a larger shape than the table holds.", "warn");
+    if (wings.length > 1) {
+      let lbs = 0, area = 0;
+      for (const w of wings) { const f = w === model ? fr : E.resolveFraming(w, w.columns); if (f.steel) { lbs += f.steel.lbs; area += f.steel.area; } }
+      if (area) add("Whole building: <b>" + Math.round(lbs).toLocaleString("en-US") + " lb</b> = " + (lbs / area).toFixed(2) + " psf across " + wings.length + " wings.");
+    }
+    add("Preliminary sizes for layout only; final sizes and connections by the engineer of record.");
+  }
+
+  function renderTabs() {
+    const box = $("wingTabs");
+    box.hidden = wings.length < 2;
+    if (box.hidden) return;
+    box.textContent = "";
+    wings.forEach((w, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === active ? "true" : "false");
+      b.textContent = (w.wing || "Wing " + (i + 1)) + (w.frame && Math.abs(w.frame.angleDeg) > 0.05 ? " (" + Math.abs(w.frame.angleDeg).toFixed(0) + "°)" : "");
+      b.addEventListener("click", () => { active = i; model = wings[i]; selected = null; fillInputs(); render(); });
+      box.appendChild(b);
+    });
+  }
+
+  function render() {
+    const p = model.project || {};
+    const gx = E.lines(model, "x"), gy = E.lines(model, "y");
+    const width = gx.length > 1 ? gx[gx.length - 1].pos - gx[0].pos : 0, depth = gy.length > 1 ? gy[gy.length - 1].pos - gy[0].pos : 0;
+    $("meta").innerHTML = "";
+    [["Plan", p.file || p.name], ["Scale", p.scale || "n/a"], ["Grid", gx.map((g) => g.label).join(" ") + " × " + gy.map((g) => g.label).join(" ")],
+     ["Grid extent", E.ftin(width) + " × " + E.ftin(depth)], ["Story height", E.ftin(model.column.heightFt * 12)]].forEach(([k, v]) => {
+      const s = document.createElement("span"); s.innerHTML = k + " <b></b>"; s.querySelector("b").textContent = v; $("meta").appendChild(s);
+    });
+    const counts = {}; model.columns.forEach((c) => (counts[kind(c)] = (counts[kind(c)] || 0) + 1));
+    $("summary").innerHTML = "";
+    const tot = document.createElement("span"); tot.className = "chip"; tot.textContent = model.columns.length + " columns"; $("summary").appendChild(tot);
+    for (const k of ["existing", "wall", "exposed", "blocked", "manual"]) if (counts[k]) {
+      const s = document.createElement("span"); s.className = "chip c-" + k; s.innerHTML = "<i></i>"; s.append(counts[k] + " " + KLABEL[k].toLowerCase()); $("summary").appendChild(s);
+    }
+    $("modeNote").textContent = model.mode === "found"
+      ? "Showing only the columns drawn on the plan. Re-run layout to add columns at grid points that have none."
+      : model.mode === "fill"
+      ? "Columns drawn on the plan are kept; grid points without one get a column from these rules. Edit a row to place a column by hand."
+      : "Columns are laid out from these rules. Edit a row to place a column by hand; it stays put when the layout re-runs.";
+    frCache = null;
+    renderTabs(); renderPlan(); renderTable(); renderGrid(); renderFraming();
+  }
+
+  // ---------------------------------------------------------------- actions
+  $("rerun").addEventListener("click", () => {
+    if (model.mode === "found") model.mode = "fill";
+    model.columns = E.layout(model, model.rules, model.column); save(); render(); toast("Layout re-run.");
+  });
+  $("reset").addEventListener("click", () => {
+    if ($("reset").dataset.armed !== "1") { $("reset").dataset.armed = "1"; $("reset").textContent = "Click again to reset"; setTimeout(() => { $("reset").dataset.armed = ""; $("reset").textContent = "Reset to plan"; }, 3000); return; }
+    wings = clone(ORIGINALS).map(norm); model = wings[Math.min(active, wings.length - 1)]; try { localStorage.removeItem(KEY); } catch (e) {}
+    $("reset").dataset.armed = ""; $("reset").textContent = "Reset to plan";
+    selected = null; fillInputs(); render(); toast("Back to the layout read from the plan.");
+  });
+  $("addCol").addEventListener("click", () => {
+    const gx = E.lines(model, "x"), gy = E.lines(model, "y");
+    const c = { id: "", status: "manual", refX: gx[0].label, dx: 0, refY: gy[gy.length - 1].label, dy: 0, note: "Placed by hand" };
+    model.columns.push(c); E.number(model, model.columns); selected = c.id; save(); render();
+    toast(c.id + " added at " + c.refX + "-" + c.refY + ". Set its lines and offsets in the list.");
+  });
+  ["showUnder", "showWalls", "showOpen", "showFrame"].forEach((id) => $(id).addEventListener("change", renderPlan));
+
+  const fileBase = () => ((model.project && model.project.name) || "plan").replace(/[^\w.-]+/g, "_") + "-columns";
+  // Export: RISA-3D (.r3d) when the skill embedded the user's RISA template, else DXF
+  const RISA = DATA.risa || null;
+  const SHAPES = RISA ? E.parseShapeTable(RISA.shapes) : null;
+  const EXT = RISA ? ".r3d" : ".dxf", KIND = RISA ? "RISA-3D file" : "DXF";
+  if (RISA) {
+    $("copyDxf").textContent = "Copy .r3d";
+    $("saveDxf").textContent = "Download RISA-3D (.zip)";
+    $("diaRow").hidden = true; $("shapeRow").hidden = false;
+    const names = Object.keys(SHAPES).sort((a, b) => parseFloat(a.slice(1)) - parseFloat(b.slice(1)) || parseFloat(a.split("X")[1]) - parseFloat(b.split("X")[1]));
+    $("colShape").innerHTML = names.map((n) => "<option>" + n + "</option>").join("");
+    $("colShape").value = (model.column.shape || "W10X33").toUpperCase();
+    $("colShape").addEventListener("change", () => { wings.forEach((w) => (w.column.shape = $("colShape").value)); save(); toast("Columns set to " + $("colShape").value + "."); });
+  }
+  const exportText = () => RISA
+    ? E.toR3D(wings.map((w) => ({ model: strip(w), cols: w.columns, column: w.column })), RISA.template, SHAPES, { columnShape: (model.column.shape || "W10X33") }).text
+    : E.toDXFWings(wings.map((w) => ({ model: strip(w), cols: w.columns, column: w.column })));
+  const dxfText = exportText;
+
+  $("copyDxf").addEventListener("click", () => {
+    const t = dxfText();
+    const fallback = () => {
+      const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove(); toast(ok ? KIND + " copied. Paste into a text file saved as " + EXT + "." : "Copy isn't available here. Use Download instead.");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(() => toast(KIND + " copied. Paste into a text file saved as " + EXT + "."), fallback);
+    else fallback();
+  });
+
+  let downloads = null;
+  $("saveDxf").disabled = true;
+  if (window.claude && window.claude.use) {
+    window.claude.use("downloads").then((d) => { downloads = d; $("saveDxf").disabled = !d; if (!d) $("saveDxf").title = "Downloads aren't available in this view. Use " + $("copyDxf").textContent + "."; }).catch(() => {});
+  } else { $("saveDxf").title = "Downloads aren't available in this view. Use " + $("copyDxf").textContent + "."; }
+  $("saveDxf").addEventListener("click", async () => {
+    if (!downloads) return;
+    const name = fileBase();
+    let text;
+    try { text = exportText(); } catch (err) { toast("Couldn't build the " + KIND + ": " + (err && err.message)); return; }
+    const zip = E.zip([{ name: name + EXT, data: text }]);
+    try { await downloads.save({ filename: name + ".zip", data: zip }); toast("Saved " + name + ".zip. Unzip it to get the " + KIND + "."); }
+    catch (e) {
+      const code = e && e.code;
+      toast(code === "declined" ? "Download cancelled." : code === "rate_limited" ? "A save is already waiting. Try again in a moment." : "Download isn't available here. Use " + $("copyDxf").textContent + ".");
+    }
+  });
+
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderPlan);
+  new MutationObserver(renderPlan).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  fillInputs(); render();
+})();
+</script>
