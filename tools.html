@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>All Tools</title>
+  <meta name="description" content="Team BMTR: turn a framing sketch or PDF plan into a RISA-3D model.">
+  <style>
+    :root { --bg: #f5f6f8; --panel: #ffffff; --text: #1c2129; --muted: #5d6673; --line: #d6dbe2; --accent: #1f6feb; --on-accent: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg: #0f1216; --panel: #171b21; --text: #e6e9ee; --muted: #9aa4b1; --line: #2a313b; --accent: #4c8dff; --on-accent: #0b0e12; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 900px; margin: 0 auto; padding: 48px 16px 64px; }
+    h1 { font-size: 34px; margin: 0 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
+    .card h2 { font-size: 20px; margin: 0 0 4px; }
+    .who { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+    .card ul { padding-left: 18px; margin: 0 0 16px; }
+    .card .go { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    a.btn { text-decoration: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 8px 14px; font-weight: 600; }
+    a.btn.primary { background: var(--accent); color: var(--on-accent); }
+    .foot { margin-top: 32px; color: var(--muted); font-size: 14px; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>All tools</h1>
+  <p class="sub">Team BMTR, NCSEA Big Build SE Hackathon 2026. Turn a framing sketch or an architectural PDF into a starting RISA-3D model, instead of retyping every node and member.</p>
+
+  <div class="grid">
+    <section class="card">
+      <h2>The team app</h2>
+      <p class="who">By Afshin. Runs on your PC.</p>
+      <ul>
+        <li>Reads a sketch photo or a PDF plan with a Claude agent that checks its own drawing and revises</li>
+        <li>Framing editor with W-shape sizes</li>
+        <li>Writes a native RISA-3D <code>.r3d</code> model and opens it in RISA</li>
+      </ul>
+      <div class="go">
+        <a class="btn primary" href="https://github.com/khkusakabe/BMTR-sketch-to-risa/tree/main/app">Get it and run it</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Truss to RISA</h2>
+      <p class="who">Team component. Runs on claude.ai.</p>
+      <ul>
+        <li>Fink, Howe/Pratt, flat-chord or mono trusses from parameters, or read from a drawing or photo with Claude</li>
+        <li>Steel or wood members, pin/roller/fixed supports, top and bottom chord unit loads</li>
+        <li>Writes a RISA-3D <code>.r3d</code>, repeated along a key plan when there are several trusses</li>
+      </ul>
+      <div class="go">
+        <a class="btn" href="https://claude.ai/artifact/EHKFcVRKoUaU1UwbpgMgGr">Open Truss to RISA</a>
+        <a class="btn" href="https://claude.ai/artifact/4N6NXAs1sMhQWdEN2XEZef" title="Adds photo straightening: four pins on known truss points">Beta: photo straightening</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Browser prototype</h2>
+      <p class="who">Try it now. Nothing to install.</p>
+      <ul>
+        <li>Open a PDF or sketch photo, set the scale</li>
+        <li>Find lines automatically, or trace by hand</li>
+        <li>Copy rows into RISA-3D spreadsheets or download a DXF</li>
+      </ul>
+      <div class="go">
+        <a class="btn" href="prototype/">Open the prototype</a>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot"><a href="index.html">Model Generator home</a> · <a href="team.html">Team notes</a> · <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa">GitHub repo</a> · These tools help an engineer build a starting model. The engineer checks it in RISA and owns the design.</p>
+</main>
+</body>
+</html>

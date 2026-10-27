@@ -735,3 +735,16 @@ resize();
 refresh();
 setMode("draw");
 status(model.nodes.length ? "Restored your last model. Open the drawing again to keep tracing." : "Open a PDF or image to start.");
+
+// Opened from a Model Generator project (?project=<id>): load that project's plan sheet.
+(async () => {
+  const pid = new URLSearchParams(location.search).get("project");
+  if (!pid || !window.MGStore) return;
+  const proj = MGStore.get(pid), file = await MGStore.getFile(pid);
+  if (!file) return status("That project has no plan sheet saved in this browser.");
+  await openFile(file);
+  if (pdfDoc && proj && proj.page > 1 && proj.page <= pdfDoc.numPages) {
+    $("pageNum").value = proj.page;
+    await renderPdfPage(proj.page);
+  }
+})();

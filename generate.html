@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Generator · Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#fff;color:#1b1b1b;font-family:Figtree,'Helvetica Neue',Arial,sans-serif;font-size:16px}
+a{color:#1b1b1b}a:hover{color:#1f5f9e}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #1f5f9e;outline-offset:2px}
+[hidden]{display:none!important}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:16px 72px;border-bottom:1px solid #d6d6d6}
+header nav{margin-left:auto;display:flex;gap:20px;font-size:14px}
+main{max-width:1296px;margin:0 auto;box-sizing:border-box;padding:28px 72px 48px;display:flex;flex-direction:column;gap:24px}
+h1{margin:0;font-size:30px;font-weight:600}
+h2{margin:0 0 12px;font-size:16px;font-weight:600}
+h3{margin:16px 0 8px;font-size:13px;font-weight:600;color:#6b6b6b;text-transform:uppercase;letter-spacing:.04em}
+.meta{color:#6b6b6b;font-size:14px}
+.cols{display:flex;flex-wrap:wrap;gap:32px;border-top:1px solid #d6d6d6;padding-top:24px}
+.plan{flex:1 1 420px;min-width:0}
+.tool{flex:1 1 420px;min-width:0}
+.sheet{border:1px solid #8a8a8a;border-radius:8px;min-height:240px;display:grid;place-items:center;overflow:hidden;background:#fafafa}
+.sheet canvas,.sheet img{max-width:100%;height:auto;display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 16px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+label.f span{font-weight:400;color:#6b6b6b}
+input,select{min-height:36px;padding:0 10px;border:1px solid #1b1b1b;border-radius:4px;font:inherit;font-size:15px;color:#1b1b1b;background:#fff;box-sizing:border-box;width:100%}
+.btn{min-height:44px;display:inline-flex;align-items:center;padding:0 24px;border:1px solid #1b1b1b;border-radius:4px;background:#fff;color:#1b1b1b;text-decoration:none;font:inherit;font-weight:600;cursor:pointer}
+.btn.primary{background:#1b1b1b;color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.card{border:1px solid #8a8a8a;border-radius:8px;padding:16px;margin-top:12px}
+.note{font-size:14px;color:#4a4a4a}
+.ok{margin-top:12px;font-size:14px}
+@media (max-width:700px){header,main{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" style="font-size:18px;font-weight:700;text-decoration:none">Model Generator</a>
+  <span style="font-size:14px;color:#6b6b6b">Sketch2Frame</span>
+  <nav><a href="tools.html">All tools</a><a href="team.html">Team notes</a></nav>
+</header>
+<main>
+  <div>
+    <h1 id="title">Project</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+  <div class="cols">
+    <section class="plan" aria-label="Plan sheet">
+      <h2>Plan Sheet</h2>
+      <div class="sheet" id="sheet"><span class="meta">No plan uploaded. You can still build the model from numbers.</span></div>
+      <div class="row" id="planActions"></div>
+    </section>
+    <section class="tool" aria-label="Build the model">
+      <div id="tool"></div>
+    </section>
+  </div>
+  <p class="note">These tools help an engineer build a starting model. The engineer checks every member, size, load and support in RISA and owns the design.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="mg/store.js"></script>
+<script src="mg/generate.js"></script>
+</body>
+</html>
