@@ -36,6 +36,9 @@
     .tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px; margin-right: 6px; border: 1px solid currentColor; }
     .tag.done { color: var(--done); }
     .tag.open { color: var(--open); }
+    .tag.taken { color: var(--accent); }
+    .skill { display: inline-block; font-size: 12px; background: var(--accent-soft); border-radius: 999px; padding: 1px 9px; margin: 3px 4px 0 0; }
+    .card.example { border-style: dashed; color: var(--muted); }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
     th { color: var(--muted); font-weight: 600; }
@@ -57,6 +60,10 @@
 
   <h2>The idea</h2>
   <p>Engineers start a lot of models from a marked-up PDF or a quick sketch, then retype every node and member into RISA. This app lets you trace the drawing instead, or have it find the lines for you, and export a starting RISA-3D model. Everything runs in the browser and nothing is uploaded.</p>
+
+  <h2>Who's on the team</h2>
+  <p>Add yourself with your skills and what you're working on, so we can match people to tasks. Edit <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/edit/main/team.json"><code>team.json</code></a> (the pencil icon on GitHub works), copy the example entry and fill it in.</p>
+  <div id="roster" class="grid"><p class="note">Loading the roster...</p></div>
 
   <h2>Try it in a minute</h2>
   <ol class="flow">
@@ -83,7 +90,8 @@
   <table>
     <tr><th>File</th><th>What it holds</th><th>Start reading at</th></tr>
     <tr><td><code>index.html</code></td><td>Layout: tools panel, drawing canvas, model and export panel.</td><td>The <code>.tools</code> aside</td></tr>
-    <tr><td><code>app.js</code></td><td>Model, drawing, mouse and keyboard input, scale, supports, accepting suggestions, and export.</td><td><code>exportNodes()</code>, <code>acceptSuggestions()</code></td></tr>
+    <tr><td><code>app.js</code></td><td>Model, drawing, mouse and keyboard input, scale, supports, and accepting suggestions.</td><td><code>acceptSuggestions()</code></td></tr>
+    <tr><td><code>export.js</code></td><td>RISA-3D export as pure functions of the model: spreadsheet rows, CSV and DXF. Exposes <code>RisaExport</code>.</td><td>The header comment</td></tr>
     <tr><td><code>detect.js</code></td><td>Line detection, with no libraries. Exposes <code>LineDetect.detect(canvas, rect, opts)</code>.</td><td><code>detect()</code></td></tr>
     <tr><td><code>style.css</code></td><td>Light and dark themes from color tokens on <code>:root</code>.</td><td><code>:root</code></td></tr>
     <tr><td><code>samples/</code></td><td>A clean gable frame (SVG) and a hand-sketch photo (JPG).</td><td></td></tr>
@@ -106,10 +114,10 @@
   <p>Pick one, put your name on its GitHub issue, and go. Each one is mostly self-contained.</p>
   <table>
     <tr><th>Task</th><th>Why it matters</th><th>Where</th></tr>
-    <tr><td><span class="tag open">open</span><b>Check the export in real RISA-3D</b></td><td>The DXF and paste formats come from public docs, but nobody has opened them in RISA yet. This matters most.</td><td>RISA, then <code>app.js</code> export</td></tr>
+    <tr><td><span class="tag taken">taken</span><b>Export to RISA-3D</b></td><td>A teammate owns this. The DXF and paste formats come from public docs and still need a check in real RISA. All export code lives in <code>export.js</code>, so it can change without touching the rest of the app.</td><td><code>export.js</code></td></tr>
     <tr><td><span class="tag open">open</span><b>Snap to grid lines</b></td><td>Hand-drawn wobble leaves values like 0.167 ft. Snapping nodes onto shared X and Y lines makes clean grids.</td><td><code>acceptSuggestions()</code></td></tr>
     <tr><td><span class="tag open">open</span><b>Read vector PDFs exactly</b></td><td>CAD PDFs hold real line coordinates. PDF.js <code>getOperatorList()</code> can give exact members, no image detection needed.</td><td>New, beside <code>renderPdfPage()</code></td></tr>
-    <tr><td><span class="tag open">open</span><b>Member sections</b></td><td>Pick a shape per member or for a selection (beam, column, brace) and include it in the Members export.</td><td>Model, panel, <code>tableFor()</code></td></tr>
+    <tr><td><span class="tag open">open</span><b>Member sections</b></td><td>Pick a shape per member or for a selection (beam, column, brace) and include it in the Members export. Coordinate with the export owner.</td><td>Model, panel, <code>export.js</code></td></tr>
     <tr><td><span class="tag open">open</span><b>Phone camera input</b></td><td>Snap a photo of a napkin sketch straight into the app at the table.</td><td><code>index.html</code> file input</td></tr>
     <tr><td><span class="tag open">open</span><b>Multi-level plans</b></td><td>Trace one plan, repeat it at several elevations, add columns between levels, and get a 3D model.</td><td>Model and export</td></tr>
     <tr><td><span class="tag open">open</span><b>Demo script and pitch</b></td><td>A 2-minute walk-through for the judges: problem, live demo on a sketch, what's next.</td><td>Slides or a doc</td></tr>
@@ -127,6 +135,9 @@ python -m http.server 8080</code></pre>
     <li><b>Keep it plain:</b> no build step, so anyone can open the files and go. If you add a library, load a pinned version from cdnjs.</li>
   </ol>
 
+  <h2>Share your Claude Code skills</h2>
+  <p>If you use Claude Code, the repo has a shared <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/tree/main/.claude/skills"><code>.claude/skills/</code></a> folder. Anyone who opens the repo in Claude Code gets every skill in it. Add yours as <code>.claude/skills/&lt;skill-name&gt;/SKILL.md</code>. The folder's README has the template. The starter skill, <code>sketch-to-risa-dev</code>, teaches Claude how this app fits together and how to test it.</p>
+
   <h2>Known limits</h2>
   <ul>
     <li>Find lines only does straight lines. Arcs and curved members are not detected.</li>
@@ -135,5 +146,25 @@ python -m http.server 8080</code></pre>
   </ul>
   <p class="note">This tool helps an engineer build a starting model faster. The engineer checks every coordinate, connection and support in RISA and owns the design.</p>
 </main>
+<script>
+  // Roster comes from team.json so anyone can add themselves without touching this page.
+  (async () => {
+    const box = document.getElementById("roster");
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    try {
+      const data = await (await fetch("team.json", { cache: "no-store" })).json();
+      const people = (data.members || []).filter((m) => !m._example);
+      box.innerHTML = people.map((m) => `
+        <div class="card">
+          <b>${esc(m.name)}</b>${m.github ? ` <a href="https://github.com/${encodeURIComponent(m.github)}" class="note">@${esc(m.github)}</a>` : ""}<br>
+          ${(m.skills || []).length ? m.skills.map((s) => `<span class="skill">${esc(s)}</span>`).join("") : `<span class="note">No skills listed yet</span>`}
+          ${m.working_on ? `<div class="note" style="margin-top:6px">Working on: ${esc(m.working_on)}</div>` : ""}
+        </div>`).join("") + `
+        <div class="card example"><b>You?</b><br>Add yourself to <code>team.json</code> with your skills.</div>`;
+    } catch (err) {
+      box.innerHTML = `<p class="note">Couldn't read team.json. Check that it's valid JSON (commas between entries, none after the last).</p>`;
+    }
+  })();
+</script>
 </body>
 </html>

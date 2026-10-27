@@ -92,67 +92,9 @@ function fmtFtIn(ft) {
   return `${f}'-${i}"`;
 }
 
-// ---------- export coordinates ----------
-function roundFt(v) {
-  const inches = Number($("round").value);
-  if (!inches) return Math.round(v * 1000) / 1000;
-  const step = inches / 12;
-  return Math.round(Math.round(v / step) * step * 1000) / 1000;
-}
-
-function exportNodes() {
-  const s = model.ftPerPx || 1;
-  const xs = model.nodes.map((n) => n.x), ys = model.nodes.map((n) => n.y);
-  const x0 = Math.min(...xs), yMin = Math.min(...ys), yMax = Math.max(...ys);
-  const plan = $("plane").value === "XZ";
-  return model.nodes.map((n) => {
-    const X = roundFt((n.x - x0) * s);
-    // Elevation: Y is up from the lowest node. Plan: Z grows down the page from the top node.
-    const Y = plan ? 0 : roundFt((yMax - n.y) * s);
-    const Z = plan ? roundFt((n.y - yMin) * s) : 0;
-    return { label: "N" + n.id, X, Y, Z, support: n.support || "" };
-  });
-}
-
-function exportMembers() {
-  return model.members.map((m) => ({ label: "M" + m.id, i: "N" + m.i, j: "N" + m.j }));
-}
-
-// RISA-3D Boundary Conditions use "Reaction" for a restrained direction.
-function supportRow(n) {
-  const R = "Reaction";
-  switch (n.support) {
-    case "Fixed": return [R, R, R, R, R, R];
-    case "Pinned": return [R, R, R, "", "", ""];
-    case "Roller": return ["", R, "", "", "", ""];  // vertical (Y) only
-    default: return null;
-  }
-}
-
-function tsv(rows) { return rows.map((r) => r.join("\t")).join("\r\n"); }
-
-function tableFor(kind) {
-  const nodes = exportNodes();
-  if (kind === "nodes") return [["Label", "X (ft)", "Y (ft)", "Z (ft)"], ...nodes.map((n) => [n.label, n.X, n.Y, n.Z])];
-  if (kind === "members") return [["Label", "I Node", "J Node"], ...exportMembers().map((m) => [m.label, m.i, m.j])];
-  const rows = [["Node Label", "X", "Y", "Z", "MX", "MY", "MZ"]];
-  for (const n of nodes) { const r = supportRow(n); if (r) rows.push([n.label, ...r]); }
-  return rows;
-}
-
-function dxf() {
-  const s = model.ftPerPx || 1;
-  const yMax = Math.max(...model.nodes.map((n) => n.y));
-  const x0 = Math.min(...model.nodes.map((n) => n.x));
-  const P = (n) => [roundFt((n.x - x0) * s), roundFt((yMax - n.y) * s)];
-  const out = ["0", "SECTION", "2", "ENTITIES"];
-  for (const m of model.members) {
-    const [x1, y1] = P(nodeById(m.i)), [x2, y2] = P(nodeById(m.j));
-    out.push("0", "LINE", "8", "MEMBERS", "10", x1, "20", y1, "30", 0, "11", x2, "21", y2, "31", 0);
-  }
-  out.push("0", "ENDSEC", "0", "EOF");
-  return out.join("\r\n") + "\r\n";
-}
+// ---------- export (the RISA formats live in export.js) ----------
+const exportOpts = () => ({ roundIn: Number($("round").value), plane: $("plane").value });
+const tableFor = (kind) => RisaExport.table(model, kind, exportOpts());
 
 function download(name, text, type) {
   const a = document.createElement("a");
@@ -748,7 +690,7 @@ document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("clic
   if (!model.nodes.length) return status("Nothing to copy yet.");
   const rows = tableFor(b.dataset.copy).slice(1);  // RISA spreadsheets take data rows only
   try {
-    await navigator.clipboard.writeText(tsv(rows));
+    await navigator.clipboard.writeText(RisaExport.tsv(rows));
     status(`Copied ${rows.length} ${b.dataset.copy} rows. Paste into the matching RISA-3D spreadsheet.`);
   } catch (err) {
     status("Clipboard blocked by the browser. Use Download CSV instead.");
@@ -757,14 +699,13 @@ document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("clic
 
 $("dxf").addEventListener("click", () => {
   if (!model.members.length) return status("Draw at least one member first.");
-  download("model.dxf", dxf(), "application/dxf");
+  download("model.dxf", RisaExport.dxf(model, exportOpts()), "application/dxf");
   status("DXF downloaded. Units are feet. In RISA-3D: File > Import > DXF.");
 });
 
 $("csv").addEventListener("click", () => {
   if (!model.nodes.length) return status("Nothing to export yet.");
-  const parts = ["NODES", tsv(tableFor("nodes")), "", "MEMBERS", tsv(tableFor("members")), "", "BOUNDARY CONDITIONS", tsv(tableFor("supports"))];
-  download("model.csv", parts.join("\r\n").replace(/\t/g, ","), "text/csv");
+  download("model.csv", RisaExport.csv(model, exportOpts()), "text/csv");
 });
 
 $("saveJson").addEventListener("click", () => download("sketch-to-risa.json", JSON.stringify(model, null, 2), "application/json"));

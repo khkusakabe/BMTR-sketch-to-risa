@@ -1,0 +1,18 @@
+{
+  "_how_to_add_yourself": "Copy the example entry, fill it in, and commit. On GitHub you can click the pencil icon on this file. Keep the commas right: entries are separated by commas, and the last one has none.",
+  "members": [
+    {
+      "name": "Kei",
+      "github": "khkusakabe",
+      "skills": [],
+      "working_on": "App setup and line detection"
+    },
+    {
+      "_example": true,
+      "name": "Your name",
+      "github": "your-github-username",
+      "skills": ["steel design", "Python", "RISA-3D", "presenting"],
+      "working_on": "Pick an open task"
+    }
+  ]
+}
