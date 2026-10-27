@@ -196,9 +196,20 @@
     if (p.kind === "truss") {
       tool.innerHTML = `
         <h2>Build the truss in Truss to RISA</h2>
-        <p class="note">Start from a Fink, Howe/Pratt, flat-chord or mono template, or upload this sheet and let Claude read it. It writes a RISA-3D .r3d. Runs on claude.ai.</p>
-        <div class="row"><a class="btn primary" href="${LINKS.truss}">Open Truss to RISA</a><a class="btn" href="${LINKS.trussBeta}">Beta: photo straightening</a></div>
-        <p class="note" style="margin-top:16px">Upload the same plan sheet there. It doesn't read files from this page.</p>`;
+        <p class="note">Olu's truss tool: start from a Fink, Howe/Pratt, flat-chord or mono template, or upload the drawing, straighten a skewed photo with four pins and trace or edit the nodes. It writes a RISA-3D .r3d.</p>
+        <div class="row"><a class="btn primary" href="truss/">Open Truss to RISA</a></div>
+        <ol class="note" style="margin-top:16px;padding-left:18px">
+          <li>Download this project's sheet: <a href="#" id="dlSheet">Download sheet</a>.</li>
+          <li>In Truss to RISA, open the drawing panel and upload it.</li>
+          <li>To have Claude read the drawing, use the <a href="${LINKS.trussBeta}">claude.ai version</a>. The drawing reader only runs there.</li>
+        </ol>`;
+      MGStore.getFile(p.id).then((f) => {
+        const a = $("dlSheet");
+        if (!a) return;
+        if (!f) { a.replaceWith(document.createTextNode("no sheet was uploaded for this project")); return; }
+        a.href = URL.createObjectURL(f);
+        a.download = f.name || "sheet";
+      });
     } else {
       tool.innerHTML = `
         <h2>Build a miscellaneous frame</h2>

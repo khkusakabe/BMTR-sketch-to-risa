@@ -14,7 +14,7 @@ The home screen is the **Model Generator**. Start a project, upload the plan she
 |---|---|---|
 | **2D Frame** | Moment Frame generator: bay, story heights, W-shapes, base, loads, then download a `.r3d` | In the browser |
 | **3D Building** | Roof Framing generator: column grid plus roof beams (or columns only), loads by tributary area, then download a `.r3d` | In the browser |
-| **2D Truss** | Truss to RISA: Fink, Howe/Pratt, flat-chord or mono templates, or a drawing read by Claude | On claude.ai |
+| **2D Truss** | Truss to RISA: Fink, Howe/Pratt, flat-chord or mono templates, photo straightening, node editing, then export a `.r3d`. The Claude drawing reader runs on its claude.ai version | In the browser |
 | **3D Misc Frame** | Browser tracer: find lines automatically or trace node to node, then export DXF or RISA spreadsheet rows | In the browser |
 
 For reading a sketch or a PDF with Ai, the workspace also links:
@@ -35,7 +35,7 @@ The generators write RISA-3D v23 files with nodes, supports, AISC sections, memb
 | `.r3d` writer from RISA's published file format | `.claude/skills/sketch-to-risa-dev/r3d.py` | Chandler |
 | Sketch and PDF reader with a Claude agent, framing editor, RISA launcher | `app/` | Afshin |
 | Floor-plan-columns Claude skill | `.claude/skills/floor-plan-columns/` | Philip Yu |
-| Truss to RISA, and its beta with photo straightening | [claude.ai](https://claude.ai/artifact/EHKFcVRKoUaU1UwbpgMgGr), [beta](https://claude.ai/artifact/4N6NXAs1sMhQWdEN2XEZef) | Team |
+| Truss to RISA (with photo straightening) | `truss/`, and on [claude.ai](https://claude.ai/artifact/4N6NXAs1sMhQWdEN2XEZef) with the Claude drawing reader | Olu |
 | Project workspace that ties it together, browser tracer with line detection | `generate.html`, `mg/`, `prototype/` | Kei |
 | Team notes, roster and shared skills | `team.html`, `team.json`, `.claude/skills/` | Team |
 
@@ -47,6 +47,7 @@ generate.html, mg/             Project workspace: runs the generators, hands off
 Final Models/                  RISA-3D generators (plain JavaScript, browser or Node)
 app/                           Afshin's local app (Python server, Claude agents, .r3d writer)
 prototype/                     Browser tracer: line detection, hand tracing, DXF and spreadsheet export
+truss/                         Olu's Truss to RISA
 models/                        Worked RISA packages (Model 1, Model 3)
 .claude/skills/                Shared Claude Code skills
 tools.html, team.html          All tools page and team notes

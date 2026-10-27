@@ -1,0 +1,2065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Truss to RISA by Olu (team BMTR). Copied from its claude.ai artifact; the claude.ai runtime is not included,
+     so the Claude drawing reader is off here. Templates, straightening, editing and export work. -->
+</head>
+<body>
+<title>Truss to RISA Beta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working drafting table. Header bar of actions, drawing on the left, the analytical model on the right, data tabs underneath. */
+:root{
+  --bg:#f3f4f2; --panel:#ffffff; --sunk:#e9ebe7; --line:#d3d7d0; --ink:#1d2622; --muted:#5d6862;
+  --accent:#b4581f; --accent-ink:#ffffff; --accent-soft:#f6e6da;
+  --tc:#1f5fa8; --bc:#2b7a4b; --web:#8a5a9e; --vert:#a8761f; --oth:#6b7280;
+  --ok:#2b7a4b; --warn:#a46a00; --bad:#b3261e; --sel:#e0a800;
+  --grid:#e2e5df; --img-bg:#dfe2dc;
+  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1c2220; --sunk:#232a27; --line:#34403b; --ink:#e4e9e5; --muted:#9aa59f;
+  --accent:#e2823f; --accent-ink:#1a0f07; --accent-soft:#3a271a;
+  --tc:#6fa8ea; --bc:#5fc08a; --web:#c194d4; --vert:#e0ad55; --oth:#9aa3ad;
+  --ok:#5fc08a; --warn:#e6b04a; --bad:#f2786f; --sel:#ffd24a; --grid:#232b28; --img-bg:#101413; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1c2220; --sunk:#232a27; --line:#34403b; --ink:#e4e9e5; --muted:#9aa59f;
+  --accent:#e2823f; --accent-ink:#1a0f07; --accent-soft:#3a271a;
+  --tc:#6fa8ea; --bc:#5fc08a; --web:#c194d4; --vert:#e0ad55; --oth:#9aa3ad;
+  --ok:#5fc08a; --warn:#e6b04a; --bad:#f2786f; --sel:#ffd24a; --grid:#232b28; --img-bg:#101413; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px;max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:20px;font-weight:700}
+h2{font-size:15px;font-weight:600}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.mono,td.num,input.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+button,.btn{font:inherit;font-weight:500;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:var(--r);padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover{filter:brightness(1.07)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:4px 6px;min-width:0}
+textarea{font-family:var(--f-mono);font-size:12px;width:100%}
+header.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand .tag{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.grid2{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);display:flex;flex-direction:column;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}
+.pb{padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;text-align:center;color:var(--muted);background:var(--sunk);cursor:pointer}
+.drop.over{border-color:var(--accent);color:var(--ink)}
+.drop strong{color:var(--ink)}
+.imgbox{position:relative;background:var(--img-bg);border-radius:4px;overflow:hidden;user-select:none;touch-action:none}
+.imgbox img{display:block;width:100%;height:auto}
+.imgbox svg{position:absolute;inset:0;width:100%;height:100%}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:4px;padding:4px 8px;font-size:12px;background:var(--sunk)}
+.thumb button{padding:0 6px;border:0;background:transparent;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status{font-size:13px;padding:8px 10px;border-radius:4px;background:var(--sunk);border-left:3px solid var(--muted)}
+.status.work{border-left-color:var(--accent)}
+.status.bad{border-left-color:var(--bad)}
+.status.good{border-left-color:var(--ok)}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toolbar .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
+#model{width:100%;height:auto;display:block;background:var(--panel);touch-action:none}
+.modelwrap{border-top:1px solid var(--line);position:relative}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line)}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.summary div{background:var(--panel);padding:8px 12px}
+.summary b{display:block;font-family:var(--f-mono);font-size:15px;font-weight:500}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;padding:0 8px;border-bottom:1px solid var(--line);background:var(--sunk);border-radius:var(--r) var(--r) 0 0}
+.tabs button{border:0;border-radius:0;background:transparent;padding:10px 12px;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.tabs .count{font-family:var(--f-mono);font-size:11px;background:var(--panel);border-radius:8px;padding:0 6px}
+.tabs .count.bad{background:var(--bad);color:var(--panel)}
+.tabs .count.warn{background:var(--warn);color:var(--panel)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel);position:sticky;top:0}
+td{padding:3px 8px;border-bottom:1px solid var(--grid);white-space:nowrap;vertical-align:middle}
+td input{width:7.5em}
+td input.short{width:8.5em}
+td select{max-width:9.5em}
+th.dofh{text-align:center}
+select.dof{width:3.4em;font-family:var(--f-mono);text-align:center;padding:3px 2px}
+select.dof.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+tr.sel td{background:var(--accent-soft)}
+tr.low td:first-child{box-shadow:inset 3px 0 var(--warn)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;border:1px solid var(--line);color:var(--muted)}
+.pill.fix{border-color:var(--accent);color:var(--accent)}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px 14px}
+.form label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.form label input,.form label select{color:var(--ink)}
+.form .chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink)}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px 12px;margin:0;min-width:0}
+legend{font-family:var(--f-display);font-weight:600;font-size:13px;padding:0 4px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{padding:7px 10px;border-radius:4px;background:var(--sunk);border-left:3px solid var(--muted);font-size:13px}
+.checks li.bad{border-left-color:var(--bad)}
+.checks li.warn{border-left-color:var(--warn)}
+.checks li.ok{border-left-color:var(--ok)}
+.checks li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.checks li>span:nth-child(2){flex:1 1 280px;min-width:0}
+.cnum{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;font:700 11px var(--f-mono);color:var(--panel);background:var(--warn);flex:none}
+.cnum.bad{background:var(--bad)}
+.checks li.flash{outline:2px solid var(--accent);outline-offset:1px}
+button.locate{padding:2px 8px;font-size:12px}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:75ch}
+.exportgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card pre{margin:0;max-height:160px;overflow:auto;font-family:var(--f-mono);font-size:11.5px;background:var(--sunk);padding:8px;border-radius:4px}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:var(--r);font-size:13px;z-index:20;max-width:min(420px,calc(100vw - 32px))}
+.tplpanel{border:1px solid var(--accent);background:var(--accent-soft);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px}
+.example{font-size:12px;color:var(--accent);font-weight:600}
+.stpanel{border:1px solid var(--accent);background:var(--accent-soft);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px}
+#pins{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#pins .pin{cursor:grab}
+.ai-notes{font-size:13px;margin:0;padding-left:18px}
+@media (prefers-reduced-motion:no-preference){button,.tabs button{transition:background .12s,border-color .12s,color .12s}}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">
+      <h1>Truss to RISA</h1>
+      <span class="tag" id="markTag">Mark —</span>
+      <span class="example" id="exampleTag" hidden>Example model (replace with your drawing)</span>
+    </div>
+    <div class="actions">
+      <button id="btnUndo" title="Undo (Ctrl+Z)">Undo</button>
+      <button id="btnTpl">Start from a template</button>
+      <button id="btnOpen">Open project</button>
+      <button id="btnSave">Save project</button>
+      <button id="btnExport" class="primary">Export to RISA</button>
+      <input type="file" id="fileOpen" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div class="tplpanel" id="tplPanel" hidden>
+    <div class="row" style="justify-content:space-between"><h2>Generate a truss from a template</h2><button id="tplClose">Close</button></div>
+    <div class="form">
+      <label>Type<select id="tplType">
+        <option value="fink">Fink (W)</option><option value="howe">Howe</option><option value="pratt">Pratt (pitched)</option>
+        <option value="flat">Flat / parallel chord (Pratt)</option><option value="mono">Mono</option></select></label>
+      <label>Span (out-to-out bearing)<input id="tplSpan" value="28'-0&quot;"></label>
+      <label>Pitch (rise per 12)<input id="tplPitch" value="4/12"></label>
+      <label>Heel height<input id="tplHeel" value="0"></label>
+      <label>Depth (flat truss)<input id="tplDepth" value="2'-0&quot;"></label>
+      <label>Panels (Howe/Pratt/Flat/Mono)<input id="tplPanels" type="number" min="2" max="20" value="6"></label>
+    </div>
+    <div class="row"><button class="primary" id="tplGo">Replace model with this truss</button><span class="muted">Sizes and end conditions come from the defaults in Settings.</span></div>
+  </div>
+
+  <div class="grid2">
+    <!-- Drawing -->
+    <section class="panel" aria-labelledby="hDraw">
+      <div class="ph"><h2 id="hDraw">Drawing</h2>
+        <div class="row">
+          <button id="btnStraighten" aria-pressed="false" title="Flatten a 3D view or a photo taken at an angle into a true elevation">Straighten skewed photo</button>
+          <button id="btnCrop" aria-pressed="false" title="Drag a box around the truss elevation so Claude reads it at full detail">Crop to truss</button>
+          <label class="row muted" style="gap:5px"><input type="checkbox" id="chkOverlay" checked> Overlay model</label>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload truss drawing">
+          <strong>Drop a truss drawing</strong> or click to choose<br>
+          <span style="font-size:12px">PNG, JPG or PDF. Shop drawings, details or photos. Add a key plan as a second file.</span>
+        </div>
+        <input type="file" id="fileImg" accept="image/png,image/jpeg,image/webp,application/pdf" multiple hidden>
+        <div class="thumbs" id="thumbs"></div>
+        <div class="row" id="pdfRow" hidden><span class="muted">PDF page</span><select id="pdfPage"></select></div>
+        <div class="imgbox" id="imgbox" hidden><img id="img" alt="Uploaded truss drawing"><svg id="overlay" preserveAspectRatio="none"></svg><svg id="pins" preserveAspectRatio="none" hidden></svg></div>
+        <div class="stpanel" id="stPanel" hidden>
+          <div class="row" style="justify-content:space-between"><h3 style="font-size:14px">Straighten to a true elevation</h3><button id="stClose">Close</button></div>
+          <p class="muted" style="margin:0;font-size:12.5px">Drag the four numbered pins onto four points of the truss plane, then give their real positions. The photo is flattened so the truss reads at one scale, as if seen straight on.</p>
+          <div class="form">
+            <label>Reference<select id="stMode">
+              <option value="rect">Rectangle (span × height)</option>
+              <option value="pts">Four joints with known coordinates</option></select></label>
+            <label data-st="rect">Width between pins 1–2 (span)<input id="stW" class="num"></label>
+            <label data-st="rect">Height between pins 1–4<input id="stH" class="num"></label>
+            <label>Extra border around the pins<input id="stPad" class="num" value="2'-0&quot;"></label>
+          </div>
+          <div class="tablewrap" data-st="pts"><table id="stPts"></table></div>
+          <p class="muted" data-st="rect" style="margin:0;font-size:12px">Pin 1 left bearing, pin 2 right bearing (both on the bottom chord line), pin 3 above the right bearing and pin 4 above the left bearing, at the height you enter. For a pitched truss, use the end verticals or heels if it has them; otherwise use "Four joints".</p>
+          <div class="row"><button class="primary" id="stUse">Use straightened image</button><span class="muted" id="stMsg" style="font-size:12px"></span></div>
+          <div class="lbl">Preview</div>
+          <canvas id="stPrev" style="width:100%;height:auto;background:var(--img-bg);border-radius:4px"></canvas>
+        </div>
+        <div class="row">
+          <button class="primary" id="btnRead" disabled>Read drawing with Claude</button>
+          <button id="btnStop" hidden>Stop</button>
+          <label class="row muted" style="gap:5px"><input type="checkbox" id="chkKeep" checked> Keep members I've fixed</label>
+        </div>
+        <div class="status" id="aiStatus">Upload a drawing, crop to the truss if the sheet is busy, then have Claude read it. You check and correct everything before export.</div>
+        <div id="aiNotesWrap" hidden><div class="lbl">Notes from the drawing</div><ul class="ai-notes" id="aiNotes"></ul></div>
+      </div>
+    </section>
+
+    <!-- Model -->
+    <section class="panel" aria-labelledby="hModel">
+      <div class="ph"><h2 id="hModel">Analytical model</h2>
+        <div class="toolbar" role="toolbar" aria-label="Model tools">
+          <button data-mode="select" aria-pressed="true" title="Select and drag nodes (V)">Select</button>
+          <button data-mode="node" aria-pressed="false" title="Click to add a node (N)">Add node</button>
+          <button data-mode="member" aria-pressed="false" title="Click two nodes (M)">Add member</button>
+          <button data-mode="delete" aria-pressed="false" title="Click a node or member to delete (D)">Delete</button>
+          <span class="sep"></span>
+          <label class="row muted" style="gap:5px"><input type="checkbox" id="chkLabels" checked> Labels</label>
+          <label class="row muted" style="gap:5px"><input type="checkbox" id="chkSizes"> Sizes</label>
+        </div>
+      </div>
+      <div class="summary" id="summary"></div>
+      <div class="modelwrap"><svg id="model" viewBox="0 0 1000 420" aria-label="Truss model"></svg></div>
+      <div class="legend">
+        <span><i style="background:var(--tc)"></i>Top chord</span><span><i style="background:var(--bc)"></i>Bottom chord</span>
+        <span><i style="background:var(--web)"></i>Web</span><span><i style="background:var(--vert)"></i>Vertical</span>
+        <span>○ pinned end</span><span>▲ pin support · ▲○ roller</span><span><b style="color:var(--bad)">①</b> check to fix (click for details)</span>
+        <span id="modeHint" class="mono"></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- Data tabs -->
+  <section class="panel">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="members" aria-selected="true">Members <span class="count" id="cMembers">0</span></button>
+      <button role="tab" data-tab="nodes" aria-selected="false">Nodes <span class="count" id="cNodes">0</span></button>
+      <button role="tab" data-tab="supports" aria-selected="false">Supports <span class="count" id="cSupports">0</span></button>
+      <button role="tab" data-tab="settings" aria-selected="false">Spacing, unit loads &amp; defaults</button>
+      <button role="tab" data-tab="checks" aria-selected="false">Checks <span class="count" id="cChecks">0</span></button>
+      <button role="tab" data-tab="export" aria-selected="false">RISA export</button>
+    </div>
+
+    <div class="pb" data-pane="members">
+      <div class="row">
+        <span class="lbl">Set size for all</span>
+        <select id="bulkRole"><option value="top">Top chords</option><option value="bottom">Bottom chords</option><option value="web">Webs</option><option value="vertical">Verticals</option><option value="all">All members</option></select>
+        <input id="bulkSize" placeholder="HSS4X4X4" style="width:7.5em">
+        <button id="bulkApply">Apply (skips fixed)</button>
+        <span class="muted" style="font-size:12px">Editing a size or end condition marks that member fixed, so bulk changes and re-reads leave it alone.</span>
+      </div>
+      <div class="tablewrap"><table id="tMembers"></table></div>
+    </div>
+    <div class="pb" data-pane="nodes" hidden>
+      <div class="row muted" style="font-size:12px">Coordinates in feet. Type 12.5, 12'-6" or 150" — all mean the same thing. Origin is the left bearing at the bottom chord line. Restraints: — free, R reaction, F fixed (held, no reaction reported). Picking a Support type fills them in; edit any one to make that node custom.</div>
+      <div class="tablewrap"><table id="tNodes"></table></div>
+    </div>
+    <div class="pb" data-pane="supports" hidden>
+      <div class="row"><select id="supNode"></select><select id="supType"><option value="pin">Pin</option><option value="roller">Roller</option><option value="fixed">Fixed</option></select><button id="supAdd">Add support</button></div>
+      <div class="tablewrap"><table id="tSupports"></table></div>
+    </div>
+    <div class="pb" data-pane="settings" hidden>
+      <fieldset><legend>Truss</legend><div class="form">
+        <label>Truss mark<input id="sMark"></label>
+        <label>Spacing (in. o.c.)<input id="sSpacing" class="num" type="number" step="0.5" min="0"></label>
+        <label>Spacing source<input id="sSpacingSrc" placeholder="drawing, key plan, assumed"></label>
+        <label>Plies<input id="sPlies" type="number" min="1" max="6" step="1"></label>
+        <label>Steel grade (steel members)<select id="sSteel"></select></label>
+        <label>Lumber species / grade (wood members)<input id="sGrade" placeholder="SPF #2"></label>
+        <label>RISA wood material (wood members)<select id="sMaterial"></select></label>
+      </div></fieldset>
+      <fieldset><legend>Key plan layout</legend><div class="form">
+        <label>Number of trusses to model<input id="sCount" type="number" min="1" max="200" step="1"></label>
+        <label>Key plan notes<input id="sKeyNotes" placeholder="e.g. T1 at 24&quot; o.c., grid A–D"></label>
+        <label class="chk"><input type="checkbox" id="sPlanar"> Hold the truss in plane: Z fixed at every node, plus Z reaction and MX fixed at the left pin</label>
+      </div><p class="muted" style="margin:8px 0 0;font-size:12px">With more than one truss, the export repeats the truss along Z at the spacing above, so you get the layout from the key plan in one model.</p></fieldset>
+      <fieldset><legend>Unit loads</legend><div class="form">
+        <label>Top chord unit load (k/ft, downward)<input id="sUTC" class="num" type="number" step="0.1" min="0"></label>
+        <label>Bottom chord unit load (k/ft, downward)<input id="sUBC" class="num" type="number" step="0.1" min="0"></label>
+      </div><p class="muted" style="margin:8px 0 0;font-size:12px">Two load cases: TC UNIT on every top chord member and BC UNIT on every bottom chord member, uniform over the full length in global −Y, no self-weight. Each gets its own load combination.</p></fieldset>
+      <fieldset><legend>Defaults by member role</legend>
+        <div class="tablewrap"><table id="tDefaults"></table></div>
+        <p class="muted" style="margin:8px 0 0;font-size:12px">Continuous = no release (plate-connected chord carried through the joint). Pinned = RISA BenPIN (Myy and Mzz released, torsion kept for stability).</p>
+      </fieldset>
+      <fieldset><legend>Paste tables</legend><div class="form">
+        <label>Vertical axis for paste tables<select id="sUp"><option value="Y">Y (RISA default)</option><option value="Z">Z (CAD convention)</option></select></label>
+        <label class="chk"><input type="checkbox" id="sHeaders"> Include column headers when copying tables</label>
+      </div></fieldset>
+    </div>
+    <div class="pb" data-pane="checks" hidden><ul class="checks" id="checksList"></ul></div>
+    <div class="pb" data-pane="export" hidden>
+      <div class="row"><button class="primary" id="btnR3d">Download RISA-3D model (.r3d)</button><button id="btnR3dCopy">Copy .r3d text</button>
+        <span class="muted" id="zipNote" style="font-size:12px">Comes as a .zip (the viewer only allows standard file types). Unzip it and double-click the .r3d.</span></div>
+      <div class="status" id="dlStatus" hidden></div>
+      <fieldset><legend>RISA template</legend>
+        <div class="row" style="gap:10px">
+          <span id="tplStatus" class="mono" style="font-size:12px"></span>
+          <button id="btnTplUp">Use my own .r3d as template</button><button id="btnTplReset" hidden>Back to built-in</button>
+          <input type="file" id="fileTpl" accept=".r3d,text/plain" hidden>
+        </div>
+        <p class="muted" style="margin:8px 0 0;font-size:12px;max-width:75ch">The export keeps the template's settings, materials, design codes and load combinations exactly as RISA wrote them, and replaces the nodes, boundary conditions, wood section sets, members and load cases with this truss. Use a template saved from your RISA version so the file opens cleanly.</p>
+      </fieldset>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">What goes into the .r3d</div>
+        <ul class="steps" id="r3dSummary"></ul>
+      </div>
+      <div id="dlFallback" hidden><div class="lbl">.r3d text (downloads are off in this view; copy it into a file named truss.r3d)</div><textarea id="dxfText" rows="10" readonly></textarea></div>
+      <details><summary class="lbl" style="cursor:pointer">Paste tables (backup if you'd rather paste into an existing model)</summary>
+        <div class="exportgrid" id="exportCards" style="margin-top:10px"></div></details>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="text/plain" id="r3dTemplate">
+[RISA-3D_INPUT_DATA]
+
+
+[VERSION_NUMBER] <1>
+23.02044;
+[END_VERSION_NUMBER]
+
+
+[PROGRAM_INFO] <1>
+64;
+[END_PROGRAM_INFO]
+
+
+[DATA_INTEGRITY_KEY] <1>
+2231265000098100000000;
+[END_DATA_INTEGRITY_KEY]
+
+
+[CLOUDID] <1>
+;
+[END_CLOUDID]
+
+
+[OS_VERSION] <1>
+Microsoft Windows NT 10.0.26200.0
+[END_OS_VERSION]
+
+
+[UNITS] <1>
+0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+[END_UNITS]
+
+
+[GLOBAL_PARAMETERS]
+
+[.PROJECT_DESCRIPTION]
+
+[..COMPANY_NAME] <1>
+<Licensed Company>
+[..END_COMPANY_NAME]
+
+[..DESIGNER_NAME] <1>
+gtedder
+[..END_DESIGNER_NAME]
+
+[.END_PROJECT_DESCRIPTION]
+
+[.SOLUTION_PARAMETERS] <1>
+0.005000 144.000000 6 5 1 1 2 0.120000 0 32.200000 1 24.000000 0 1 1 1 3 1 1 1 0;
+[.END_SOLUTION_PARAMETERS]
+
+[.DESIGN_CODES] <1>
+408 5000 12 0 21 1 16 0 9 0 0 408 1 0 0 1 1 1 1 0 1 1 0 9000;
+[.END_DESIGN_CODES]
+
+[.WIND_PARAMETERS] <1>
+12 115.000000 2 1 0.000000 0.000000 0.000000 0.850000 14 -999999.000000 1 0 0.900000 0.020000 0.850000 1.000000;
+
+[..IS_WIND_PARAMETERS] <1>
+47.000000 2 2 1.000000 1.000000 1.200000 1.200000 1 1 0.010000 0.010000 1.000000 1.000000;
+[..END_IS_WIND_PARAMETERS]
+
+[..MEXI_WIND_PARAMETERS] <1>
+0 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0.280000;
+[..END_MEXI_WIND_PARAMETERS]
+
+[..NBC_2005_WIND_PARAMETERS] <1>
+1 0 0.000000 0.015000 0.100000 0.000000 0.000000 0 1 1.000000;
+[..END_NBC_2005_WIND_PARAMETERS]
+
+[.END_WIND_PARAMETERS]
+
+[.SEISMIC_PARAMETERS] <1>
+13 0.020000 0.020000 -1.000000 -1.000000 3.000000 3.000000 3 3 1.000000 0 0.540000 0.360000 1.000000 1.000000 1.000000 -1 20 -999999.000000 1 5.000000 0.750000 0.750000 0.540000 0.360000 1.000000 1.000000 1.000000 1.000000 3 4.000000 4.000000 1 2;
+
+[..MULTI_PERIOD_SPECTRUM] <22>
+0.000000 0.510000;
+0.010000 0.520000;
+0.020000 0.490000;
+0.030000 0.460000;
+0.050000 0.490000;
+0.075000 0.610000;
+0.100000 0.710000;
+0.150000 0.820000;
+0.200000 0.890000;
+0.250000 0.930000;
+0.300000 1.020000;
+0.400000 1.150000;
+0.500000 1.310000;
+0.750000 1.520000;
+1.000000 1.640000;
+1.500000 1.660000;
+2.000000 1.710000;
+3.000000 1.340000;
+4.000000 0.980000;
+5.000000 0.750000;
+7.500000 0.380000;
+10.000000 0.220000;
+[..END_MULTI_PERIOD_SPECTRUM]
+
+[..SEISMIC_DETAILING] <1>
+1.000000 1.000000 1.000000 1.000000 0;
+[..END_SEISMIC_DETAILING]
+
+[..IS_SEISMIC_PARAMETERS] <1>
+0.075000 0.075000 -1.000000 -1.000000 4.000000 4.000000 2 1 1.000000 5.000000;
+[..END_IS_SEISMIC_PARAMETERS]
+
+[..MEXICAN_SEISMIC_PARAMETERS] <1>
+-1.000000 -1.000000 2 2 0 0 2 0;
+[..END_MEXICAN_SEISMIC_PARAMETERS]
+
+[..NBC_2005_SEISMIC_PARAMETERS] <1>
+1 2 0 0.000000 0.000000 0.240000 0.600000 0.600000 0.340000 3.500000 1.500000 0.000000 0.000000 0.000000 1.100000 1.110000 0.707000 0.465000 0.129000 0.051800; 
+[..END_NBC_2005_SEISMIC_PARAMETERS]
+
+[.END_SEISMIC_PARAMETERS]
+
+[.NOTIONALLoad_PARAMETERS] <1>
+0.010000, 0.010000, -1, 12, -1, -1, -1, 0.000000, 0, 1; 
+[.END_NOTIONALLoad_PARAMETERS]
+
+[.CONCRETE_PARAMETERS] <1>
+0 1 4.000000 2.000000 4 1 1 2 0.650000 0 8.000000 1 1.000000 1 0 1;
+[.END_CONCRETE_PARAMETERS]
+
+[.FOOTING_PARAMETERS] <1>
+0.000000 0.000000 3644.000000 0.000000 0.001800 0.007500 0.000000 0.000000 0.000000 0.000000 3 3 3 1 1 1 0.000000;
+[.END_FOOTING_PARAMETERS]
+
+[.LC_GENERATOR_RLL_OPTIONS] <1>
+1 0 0;
+[.END_LC_GENERATOR_RLL_OPTIONS]
+
+[END_GLOBAL_PARAMETERS]
+
+
+[LABEL_LENGTHS] <1>
+32 32 32 32 32 32 32 32 32 32 32 32 32 79 200 200 32 32 36 32 10 32 32 32;
+[END_LABEL_LENGTHS]
+
+
+[MATERIAL_PROPERTIES]
+
+[.GENERAL_MATERIAL] <9>
+"gen_Conc3NW                     " 3155.000000 1372.000000 0.150000 0.600000 0.145000 -1 0 0;
+"gen_Conc4NW                     " 3644.000000 1584.000000 0.150000 0.600000 0.145000 -1 0 0;
+"gen_Conc3LW                     " 2085.000000 906.000000 0.150000 0.600000 0.109999 -1 0 0;
+"gen_Conc4LW                     " 2408.000000 1047.000000 0.150000 0.600000 0.109999 -1 0 0;
+"gen_Alum                        " 10100.000000 4077.000000 0.300000 1.290000 0.173000 -1 0 0;
+"gen_Steel                       " 29000.000000 11154.000000 0.300000 0.650000 0.490000 -1 0 0;
+"gen_Plywood                     " 1800.000000 38.000000 0.000000 0.300000 0.035000 -1 0 0;
+"RIGID                           " 1000000.000000 0.000000 0.300000 0.000000 0.000000 -1 0 0;
+"gen_Ortho                       " 29000.000000 11154.000000 0.300000 0.650000 0.490000 -1 1 0;
+[.END_GENERAL_MATERIAL]
+
+[.ORTHOTROPIC_MATERIAL] <1>
+"gen_Ortho                       " 29000.000000 14500.000000 11154.000000 11154.000000 11154.000000 0.300000 0.650000 0.490000 -1;
+[.END_ORTHOTROPIC_MATERIAL]
+
+[.HR_STEEL_MATERIAL] <8>
+"A992                            " 29000.000000 11154.000000 0.300000 0.650000 0.490000 50.000000 -1 1.100000 65.000000 1.100000;
+"A36 Gr.36                       " 29000.000000 11154.000000 0.300000 0.650000 0.490000 36.000000 -1 1.500000 58.000000 1.200000;
+"A572 Gr.50                      " 29000.000000 11154.000000 0.300000 0.650000 0.490000 50.000000 -1 1.100000 65.000000 1.100000;
+"A500 Gr.B                       " 29000.000000 11154.000000 0.300000 0.650000 0.527000 46.000000 -1 1.400000 58.000000 1.300000;
+"A500 Gr.C                       " 29000.000000 11154.000000 0.300000 0.650000 0.527000 50.000000 -1 1.300000 62.000000 1.200000;
+"A53 Gr.B                        " 29000.000000 11154.000000 0.300000 0.650000 0.490000 35.000000 -1 1.600000 60.000000 1.200000;
+"A1085                           " 29000.000000 11154.000000 0.300000 0.650000 0.490000 50.000000 -1 1.250000 65.000000 1.150000;
+"A913 Gr.65                      " 29000.000000 11154.000000 0.300000 0.650000 0.490000 65.000000 -1 1.100000 80.000000 1.100000;
+[.END_HR_STEEL_MATERIAL]
+
+[.CF_STEEL_MATERIAL] <2>
+"A653 SS Gr33                    " 29500.000000 11346.000000 0.300000 0.650000 0.490000 33.000000 45.000000 -1;
+"A653 SS Gr50/1                  " 29500.000000 11346.000000 0.300000 0.650000 0.490000 50.000000 65.000000 -1;
+[.END_CF_STEEL_MATERIAL]
+
+[.ALUMINUM_MATERIAL] <6>
+"3003-H14                        " 10100.000000 3787.500000 0.330000 1.300000 0.172800 0 1.000000  19.000000 16.000000 13.000000 12.000000 141.000000 -1;
+"6061-T6                         " 10100.000000 3787.500000 0.330000 1.300000 0.172800 1 1.000000  38.000000 35.000000 35.000000 24.000000 141.000000 -1;
+"6063-T5                         " 10100.000000 3787.500000 0.330000 1.300000 0.172800 1 1.000000  22.000000 16.000000 16.000000 13.000000 141.000000 -1;
+"6063-T6                         " 10100.000000 3787.500000 0.330000 1.300000 0.172800 1 1.000000  30.000000 25.000000 25.000000 19.000000 141.000000 -1;
+"5052-H34                        " 10200.000000 3787.500000 0.330000 1.300000 0.172800 0 1.000000  34.000000 26.000000 24.000000 20.000000 141.000000 -1;
+"6061-T6 W                       " 10100.000000 3787.500000 0.330000 1.300000 0.172800 0 1.000000  24.000000 15.000000 15.000000 15.000000 141.000000 -1;
+[.END_ALUMINUM_MATERIAL]
+
+[.WOOD_MATERIAL] <16>
+"DF                              " "Douglas Fir-Larch               " 0 6 2 0 1.000000 0.300000 0.300000 0.035001 0 -1 0 0 "Visually Graded                 ";
+"SP                              " "Southern Pine                   " 0 31 2 0 1.000000 0.300000 0.300000 0.035001 0 -1 0 0 "Visually Graded                 ";
+"HF                              " "Hem-Fir                         " 0 15 2 0 1.000000 0.300000 0.300000 0.035001 0 -1 0 0 "Visually Graded                 ";
+"SPF                             " "Spruce-Pine-fir                 " 0 32 2 0 1.000000 0.300000 0.300000 0.035001 0 -1 0 0 "Visually Graded                 ";
+"24F-1.8E DF Balanced            " "24F-1.8E_DF_BAL                 " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 1 -1 1 0 "Table 5A                        ";
+"24F-1.8E DF Unbalanced          " "24F-1.8E_DF_UNBAL               " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 1 -1 1 0 "Table 5A                        ";
+"24F-1.8E SP Balanced            " "24F-1.8E_SP_BAL                 " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 1 -1 1 0 "Table 5A                        ";
+"24F-1.8E SP Unbalanced          " "24F-1.8E_SP_UNBAL               " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 1 -1 1 0 "Table 5A                        ";
+"1.3E-1600F_VERSALAM             " "1.3E-1600F_VERSALAM             " 0 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 2 0 "Boise Cascade                   ";
+"1.35E LSL_SolidStart            " "1.35E LSL_SolidStart            " 0 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 2 0 "Louisiana Pacific               ";
+"1.4E_RIGIDLAM LVL               " "1.4E_RIGIDLAM LVL               " 0 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 2 0 "Roseburg Forest Products_2023   ";
+"2.0E_DF Parallam PSL            " "2.0E_DF Parallam PSL            " 0 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 2 0 "TrusJoist                       ";
+"LVL_PRL_1.5E_2250F              " "LVL_PRL_1.5E_2250F              " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 3 0 "N/A                             ";
+"LVL_Microlam_1.9E_2600F         " "LVL_Microllam_1.9E_2600F        " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 3 0 "N/A                             ";
+"PSL_Parallam_2.0E_2900F         " "PSL_Parallam_2.0E_2900F         " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 3 0 "N/A                             ";
+"LSL_TimberStrand_1.55E_2325F    " "LSL_TimberStrand_1.55E_2325F    " 1 1 1 0 1.000000 0.300000 0.300000 0.035001 0 -1 3 0 "N/A                             ";
+
+[..CUSTOM_WOOD_PROPERTIES] <4>
+"LVL_PRL_1.5E_2250F              " 2.25 1.5 0.22 1.95 0 1500 1 0.5 -1 4 0.5;
+"LVL_Microllam_1.9E_2600F        " 2.6 1.555 0.285 2.51 0 1900 1 0.5 -1 4 0.5;
+"PSL_Parallam_2.0E_2900F         " 2.9 2.025 0.29 2.9 0 2000 1 0.5 -1 4 0.5;
+"LSL_TimberStrand_1.55E_2325F    " 2.325 1.07 0.31 2.05 0 1550 1 0.5 -1 4 0.5;
+[..END_CUSTOM_WOOD_PROPERTIES]
+
+[.END_WOOD_MATERIAL]
+
+[.CONCRETE_MATERIAL] <9>
+"Conc3000NW                      " 3156.000000 1372.000000 0.150000 0.600000 0.145000 3.000000 -1 1.000000 60.000000 60.000000;
+"Conc3500NW                      " 3409.000000 1482.000000 0.150000 0.600000 0.145000 3.500000 -1 1.000000 60.000000 60.000000;
+"Conc4000NW                      " 3644.000000 1584.000000 0.150000 0.600000 0.145000 4.000000 -1 1.000000 60.000000 60.000000;
+"Conc3000LW                      " 2085.000000 907.000000 0.150000 0.600000 0.109999 3.000000 -1 0.750000 60.000000 60.000000;
+"Conc3500LW                      " 2252.000000 979.000000 0.150000 0.600000 0.109999 3.500000 -1 0.750000 60.000000 60.000000;
+"Conc4000LW                      " 2408.000000 1047.000000 0.150000 0.600000 0.109999 4.000000 -1 0.750000 60.000000 60.000000;
+"Conc3000NW WWR                  " 3156.000000 1372.000000 0.150000 0.600000 0.145000 3.000000 -1 1.000000 70.000000 60.000000;
+"Conc3500NW WWR                  " 3409.000000 1482.000000 0.150000 0.600000 0.145000 3.500000 -1 1.000000 70.000000 60.000000;
+"Conc4000NW WWR                  " 3644.000000 1584.000000 0.150000 0.600000 0.145000 4.000000 -1 1.000000 70.000000 60.000000;
+[.END_CONCRETE_MATERIAL]
+
+[.MASONRY_MATERIAL] <3>
+"Concrete Matl                   " 1350.000000 540.000000 0.250000 0.600000 0.079999 2.000000 -1 2 2 1 60.000000 60.000000;
+"Clay Matl                       " 1050.000000 420.000000 0.250000 0.600000 0.050000 2.000000 -1 2 2 1 60.000000 60.000000;
+"Gen Masonry                     " 1050.000000 420.000000 0.250000 0.600000 0.079999 2.000000 -1 1 2 1 60.000000 60.000000;
+[.END_MASONRY_MATERIAL]
+
+[.S_STEEL_MATERIAL] <3>
+"A276 S316                       " 28000.000000 10780.000000 0.300000 0.930000 0.500001 30.000000 -1 75.000000 0;
+"A276 S321                       " 29000.000000 11165.000000 0.300000 0.730000 0.480000 65.000000 -1 94.000000 0;
+"A276 S304                       " 28000.000000 10780.000000 0.300000 0.930000 0.490000 30.000000 -1 75.000000 0;
+[.END_S_STEEL_MATERIAL]
+
+[END_MATERIAL_PROPERTIES]
+
+
+[SECTION_SETS]
+
+[.HR_STEEL_SECTION_SETS] <4>
+"LL1.5X1.5X3/16                  " "Double Angle (No Gap)           " "LL1.5X1.5X3/16                  " 1 1 1 0 0 1.057312 0.929525 0.220444 0.011407 -1;
+"L1X1X3/16                       " "Single Angle                    " "L1X1X3/16                       " 4 1 1 0 0 0.340656 0.030003 0.030003 0.003489 -1;
+"HSS1"X1/8"                      " "HSS Pipe                        " "HSS1"X1/8"                      " 2 1 1 0 0 0.343612 0.033556 0.033556 0.067112 -1;
+"L1.5X1.5X3/16                   " "Single Angle                    " "L1.5X1.5X3/16                   " 4 1 1 0 0 0.528656 0.110222 0.110222 0.005704 -1;
+[.END_HR_STEEL_SECTION_SETS]
+
+[.CF_STEEL_SECTION_SETS] <1>
+"CF1                             " "CU                              " "8CU1.25X057                     " 1 2 0 0 0 0.581000 0.056700 4.410000 0.000630 -1;
+[.END_CF_STEEL_SECTION_SETS]
+
+[.WOOD_SECTION_SETS] <2>
+"HSS5X5X1/4                      " "Rectangular Double              " "2-2X4                           " 1 3 3 0 0 10.500000 7.875000 10.718750 15.255131 -1;
+"HSS3X3X1/4                      " "Rectangular Double              " "2-2X4                           " 1 3 3 0 0 10.500000 7.875000 10.718750 15.255131 -1;
+[.END_WOOD_SECTION_SETS]
+
+[.GENERAL_SECTION_SETS] <2>
+"GEN1                            " "None                            " "RE4X4                           " 1 0 0 1 0 16.000000 21.333333 21.333333 31.573333 -1;
+"RIGID                           " "None                            " "                                " 0 0 7 1 0 1000000.000000 1000000.000000 1000000.000000 1000000.000000 -1;
+[.END_GENERAL_SECTION_SETS]
+
+[.CONCRETE_SECTION_SETS] <1>
+"CONC1                           " "Rectangular                     " "CRECT12X8                       " 1 5 0 0 0 96.000000 512.000000 1152.000000 1187.840000 -1;
+[.END_CONCRETE_SECTION_SETS]
+
+[.ALUMINUM_SECTION_SETS] <1>
+"AL1                             " "None                            " "AAI3X1.64                       " 1 6 0 1 0 1.390000 0.522000 2.240000 0.019000 -1;
+[.END_ALUMINUM_SECTION_SETS]
+
+[.STAINLESS_SECTION_SETS] <1>
+"SS1                             " "None                            " "W10X33_SS                       " 1 10 0 1 0 9.710000 36.600000 171.000000 0.583000 -1;
+[.END_STAINLESS_SECTION_SETS]
+
+[END_SECTION_SETS]
+
+
+[WOOD_SCHEDULES] <1>
+
+[WOOD_SCHEDULE : 1] <1>
+"AWC 2021 OSB                    " "AWC 2021 OSB                    " "S1_5/16_6d@6                    " "St-I      " "6.000000  " "n/a       " 0.312500 1.250000 0 1 6.000000 0.016667 13.000000 1;
+[END_WOOD_SCHEDULE : 1]
+
+[END_WOOD_SCHEDULES]
+
+
+[WOOD_SCHEDULES_DATA] <1>
+ 1;
+[END_WOOD_SCHEDULES_DATA]
+
+
+[WOOD_HOLDDOWN_SERIES] <1>
+
+[WOOD_HOLDDOWN_SERIES : 1] <1>
+"SIMPSON HoldDowns               " "DTT1Z-SD9x1.5_DF-SP             " "SIMPSON                         " "N/A       " "16d       " "Other     " 0 1 1.500000 0.500000 0 8 0.170000 0.840000 1.600000;
+[END_WOOD_HOLDDOWN_SERIES : 1]
+
+[END_WOOD_HOLDDOWN_SERIES]
+
+
+[COLDFORM_SCHEDULES] <1>
+
+[COLDFORM_SCHEDULE : 1] <1>
+"CFS Steel Sheeting              " "AISI 2020 Steel                 " "0.018_#8@6/12_33                " "Type I - Segmented" "Steel Sheathing                 " "No                              " 0 0.018000 6.000000 0 33.000000 8 0.040417 11346.000000 0.00028356496;
+[END_COLDFORM_SCHEDULE : 1]
+
+[END_COLDFORM_SCHEDULES]
+
+
+[COLDFORM_SCHEDULES_DATA] <1>
+ 1;
+[END_COLDFORM_SCHEDULES_DATA]
+
+
+[DESIGN_RULES]
+
+[.SIZE_UC_RULES] <1>
+"Typical" -1.000000 -1.000000 -1.000000 -1.000000 1.000000 1.000000;
+[.END_SIZE_UC_RULES]
+
+[.DEFLECTION_RULES] <1>
+"Typical" -1.000000 240.000000 -1.000000 360.000000 -1.000000 240.000000 -1 -1.000000 360.000000 -1 -1.000000 360.000000;
+[.END_DEFLECTION_RULES]
+
+[.REBAR_RULES] <1>
+"Typical" 2 7 1 60.000000 80.000000 60.000000 80.000000 2 1.500000 1.500000 1.500000;
+[.END_REBAR_RULES]
+
+[.MASONRY_WALLPANEL_RULES] <1>
+"Typical" 3 16.000000 8.000000 60.000000 60.000000 2 2 1;
+[.END_MASONRY_WALLPANEL_RULES]
+
+[.WOOD_WALLPANEL_RULES] <1>
+"Typical" "2-2X6                           " "2X6                             " "2X6                             " "2-2X6                           " -1 16.000000 16.000000 -1 0.375000 0.468750 0 0 2 0 "CAN SIMPSON Catalog             " "Canadian Simpson HoldDowns      " 1 "CAN_HDU2-SDS2.5_DFL             " "SIMPSON                         " "N/A       " "16d       " "Other     " 3.000000 0.500000 0 8 0 0.092000 1 3.210000 1.150000;
+[.END_WOOD_WALLPANEL_RULES]
+
+[.CF_WALLPANEL_RULES] <1>
+"Typical" "600T125-30                      " "600T125-30                      " "600S137-33                      " "2-600S137-43-BB                 " "Type I - Segmented              " "Steel Sheet sheathing           " "600S137-33                      " 12.000000 24.000000 -1 0.018000 0.750000 3 0 0 0.000000 0.000000 1 -1 -1 0.150000 0;
+[.END_CF_WALLPANEL_RULES]
+
+[END_DESIGN_RULES]
+
+
+[MEMBER_DESIGN_RULES]
+
+[.MEMBER_SIZE_UC_RULES] <1>
+"Typical                         " -1.000000 -1.000000 -1.000000 -1.000000 1.000000 1.000000;
+[.END_MEMBER_SIZE_UC_RULES]
+
+[.MEMBER_DEFLECTION_RULES] <1>
+"Typical                         " -1.000000 240.000000 -1.000000 360.000000 -1.000000 240.000000 -1 -1.000000 360.000000 -1 -1.000000 360.000000 0 240.000000 1 360.000000 2 240.000000;
+[.END_MEMBER_DEFLECTION_RULES]
+
+[.MEMBER_REBAR_RULES] <1>
+"Typical                         " 3 7 1 60.000000 80.000000 60.000000 80.000000 2 1.500000 1.500000 1.500000 1 2 1 12.000000 0;
+[.END_MEMBER_REBAR_RULES]
+
+[END_MEMBER_DESIGN_RULES]
+
+
+[WALL_DESIGN_RULES]
+
+[.MASONRY_WALLPANEL_RULES] <1>
+"Typical                         " 3 16.000000 8.000000 60.000000 60.000000 2 2 1 1 1 0 8 2 0 0 0 0 2 2 0 8.000000 40.000000 0 0 16.000000 8.000000 2 1 3 0 4.000000 3.500000 1 0 0.000000 0;
+[.END_MASONRY_WALLPANEL_RULES]
+
+[.WOOD_WALLPANEL_RULES] <1>
+"Typical                         " "2-2X8                           " "2X6                             " "2X6                             " "2-2X8                           " 0 16.000000 16.000000 -1 0.375000 0.750000 0 0 3 0 "SIMPSON HoldDowns               " "Simpson HoldDowns               " 1 "DTT1Z-SD9x1.5_DF-SP             " "SIMPSON                         " "N/A       " "16d       " "Other     " 1.500000 0.500000 0 8 0 0.170000 1 0.840000 1.600000 "6x8                             " 5.500000 7.250000 -1 0.750000 0 "SIMPSON Chord Straps            " "Simpson Chord Straps            " 1 "MSTA49_18_DF/SP_Nail            " "SIMPSON                         " "0.148 x 2 1/2                   " 18.000000 0.000000 0 0 26 1.600000 2.020000;
+[.END_WOOD_WALLPANEL_RULES]
+
+[.CF_WALLPANEL_RULES] <1>
+"Typical                         " "600T125-33                      " "600T125-33                      " "600S137-33                      " "2-600S137-43-BB                 " "Type I - Segmented              " "Steel Sheet sheathing           " "600S137-33                      " 12.000000 12.000000 0 0.018000 0.750000 2 0 0 0.000000 0.000000 1 -1 -1 0.150000 0;
+[.END_CF_WALLPANEL_RULES]
+
+[.CONCRETE_WALLPANEL_RULES] <1>
+3 18.000000 4.000000 2.000000 1 18.000000 4.000000 2.000000 0 0 1.000000 1.000000 2.000000 0 0 0;
+[.END_CONCRETE_WALLPANEL_RULES]
+
+[.UC_WALLPANEL_RULES] <1>
+1.000000 1.000000;
+[.END_UC_WALLPANEL_RULES]
+
+[END_WALL_DESIGN_RULES]
+
+
+[SEISMIC_DESIGN_RULES] <9>
+"OCBF                            " 2 1 0 5 0 1.000000 0.000000 0 0 0 2 2 2;
+"SCBF                            " 0 1 0 5 1 1.000000 0.000000 0 1 1 0 0 0;
+"OMF                             " 0 1 0 2 0 1.000000 12.000000 0 0 2 2 2 -1;
+"IMF                             " 0 1 0 0 0 1.000000 12.000000 0 0 3 1 1 -1;
+"SMF-RBS                         " 0 1 0 1 0 0.685000 14.625000 0 0 4 0 0 -1;
+"SMF-CBB-B                       " 0 1 0 7 0 1.000000 12.000000 0 0 4 0 0 -1;
+"SMF-CBB-W                       " 0 1 0 6 0 1.000000 12.000000 0 0 4 0 0 -1;
+"SMF-BSEEP                       " 0 1 0 3 0 1.000000 12.000000 0 0 4 0 0 -1;
+"SMF-WUF-W                       " 0 1 0 4 0 1.000000 0.000000 0 0 4 0 0 -1;
+[END_SEISMIC_DESIGN_RULES]
+
+
+[SEISMIC_DESIGN_RULES_CONCRETE_WALL] <3>
+"Ordinary                        " 0 0;
+"Intermediate Precast            " 1 0;
+"Special                         " 2 0;
+[END_SEISMIC_DESIGN_RULES_CONCRETE_WALL]
+
+
+[SEISMIC_DESIGN_RULES_MASONRY_WALL] <3>
+"Ordinary                        " 1 0 0 0;
+"Intermediate                    " 2 0 0 0;
+"Special                         " 3 0 1 1;
+[END_SEISMIC_DESIGN_RULES_MASONRY_WALL]
+
+
+[CONNECTION_RULES] <37>
+"Col/Bm Single Angle Shear       " 1 8326775730083961269 0 0 9 1.500000 1;
+"Col/Bm Double Angle Shear       " 1 11689350559292884374 0 0 1 0.000000 1;
+"Col/Bm Two Side Clip Angle Shear" 28 11033351067226020289 0 0 1 0.000000 1;
+"Col/Bm End Plate Shear          " 2 13998115373551778477 -1 0 1 0.000000 1;
+"Col/Bm Shear Tab Shear          " 3 17601818045302958501 0 -1 1 0.000000 1;
+"Girder/Bm Single Angle Shear    " 6 12638314418617636100 0 0 5 0.000000 1;
+"Girder/Bm Double Angle Shear    " 6 6862362640107747697 0 0 1 0.000000 1;
+"Grd/Bm Two Side Clip Angle Shear" 29 5453349157569652091 0 0 1 0.000000 1;
+"Girder/Bm End Plate Shear       " 7 9899264453859862593 -1 0 1 0.000000 1;
+"Girder/Bm Shear Tab Shear       " 8 6744515304595930066 0 -1 1 0.000000 1;
+"Beam Shear Splice               " 9 11766719191479798934 0 -1 1 0.000000 1;
+"Column Shear Splice             " 12 15261247897161496748 -1 0 1 0.000000 1;
+"Col/Bm Ext. End Plate Moment    " 4 3467180554188167719 -1 -1 1 0.000000 2;
+"Col/Bm PartExt. End Plate Moment" 21 2769639425949892183 -1 -1 1 0.000000 2;
+"Col/Bm Flush End Plate Moment   " 22 8757428989449453772 -1 -1 1 0.000000 2;
+"Col/Bm Flange Plate Moment      " 5 18045508935872500892 0 -1 1 0.000000 2;
+"Col/Bm Direct Weld Moment       " 19 12611346478063471729 0 -1 1 0.000000 2;
+"Col/Bm Seismic Moment           " 20 17240078577181113262 -1 -1 1 0.000000 2;
+"Beam Moment Plate Splice        " 10 9551972087720990345 0 -1 1 0.000000 2;
+"Column Moment Plate Splice      " 13 15018524083178114705 -1 -1 1 0.000000 2;
+"Beam Direct Weld Moment Splice  " 17 5429540578277306000 0 -1 1 0.000000 2;
+"Col Direct Weld Moment Splice   " 18 10113612446283212732 -1 0 1 0.000000 2;
+"Bm Ext. End Plate Moment Splice " 11 358341248027713810 0 -1 1 0.000000 2;
+"Col Ext. End Plate Moment Splice" 14 3070046491843482684 -1 0 1 0.000000 2;
+"Column Cap Plate Moment         " 35 17261359790822777679 0 -1 1 0.000000 2;
+"Cont. Beam Over Col Moment      " 36 14813472486797984765 0 -1 1 0.000000 2;
+"Diagonal Vertical Brace         " 15 8888133639673606068 -1 -1 1 0.000000 3;
+"Chevron Vertical Brace          " 16 13566700628341212597 -1 -1 0 0.000000 3;
+"Seismic Diagonal Brace          " 23 7369834645127988364 -1 -1 1 0.000000 3;
+"Seismic Chevron Brace           " 24 3911129400383381588 -1 -1 1 0.000000 3;
+"Knee Brace                      " 26 5888005769207117119 -1 -1 1 0.000000 3;
+"Ext. Shear Tab without Gusset   " 33 7176483062043883658 0 -1 1 0.000000 3;
+"Ext. Shear Tab with Gusset      " 34 14572672913570127996 0 -1 1 0.000000 3;
+"Single Column Base Plate        " 25 10737606863485897641 -1 -1 1 0.000000 4;
+"Base Plate with Vertical Brace  " 30 2787219713418994301 -1 -1 1 0.000000 3;
+"HSS Truss Connection            " 27 6274856981513824205 -1 -1 1 0.000000 5;
+"HSS Beam to Column Moment       " 37 13215546829656558985 -1 -1 1 0.000000 2;
+[END_CONNECTION_RULES]
+
+
+[NODES] <14>
+"N1                              "   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N2                              "   5.000000000000e+00   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N3                              "   1.300000000000e+01   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N4                              "   2.100000000000e+01   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N5                              "   2.500000000000e+01   0.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N6                              "   0.000000000000e+00   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N7                              "   1.000000000000e+00   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N8                              "   5.000000000000e+00   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N9                              "   9.000000000000e+00   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N10                             "   1.300000000000e+01   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N11                             "   1.700000000000e+01   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N12                             "   2.100000000000e+01   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N13                             "   2.500000000000e+01   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+"N14                             "   2.600000000000e+01   2.000000000000e+00   0.000000000000e+00   0.000000000000e+00 65535 0 0 -1 -1 0;
+[END_NODES]
+
+
+[BOUNDARY_CONDITIONS] <14>
+1 4 4 4 1 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+2 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+3 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+4 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+5 0 4 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+6 4 4 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+7 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+8 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+9 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+10 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+11 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+12 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+13 0 0 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+14 4 4 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 -1 -1 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0 0;
+[END_BOUNDARY_CONDITIONS]
+
+
+[SHAPES_LIST] <11>
+"HSS5X5X4                        " 5 2 1 4.300000 5.000000 0.233000 5.000000 0.000000 0.000000 16.000000 16.000000 7.610000 7.610000 25.800000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7.000000;
+"HSS3X3X4                        " 5 2 1 2.440000 3.000000 0.233000 3.000000 0.000000 0.000000 3.020000 3.020000 2.480000 2.480000 5.080000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7.000000;
+"LL1.5X1.5X3/16                  " 5 6 1 1.057312 1.500000 0.188000 1.500000 0.000000 0.750000 0.220444 0.929525 0.376212 0.865863 0.011407 0.002052 0.000000 0.443929 1.100039 0.000000 0.630000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7.050000;
+"L1X1X3/16                       " 5 7 1 0.340656 1.000000 0.188000 1.000000 0.785400 0.194605 0.030003 0.030003 0.079338 0.079338 0.003489 0.000000 0.318062 0.318062 0.525887 0.000000 0.375000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7.050000;
+"HSS1"X1/8"                      " 5 3 1 0.343612 1.000000 0.125000 0.000000 0.000000 0.000000 0.033556 0.033556 0.096354 0.096354 0.067112 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.050000;
+"L1.5X1.5X3/16                   " 5 7 1 0.528656 1.500000 0.188000 1.500000 0.785400 0.293334 0.110222 0.110222 0.188106 0.188106 0.005704 0.000000 0.443929 0.443929 0.813567 0.000000 0.375000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7.050000;
+"8CU1.25X057                     " 20 200 2 0.581000 8.000000 0.057000 1.250000 0.000000 0.187500 4.410000 0.056700 0.146500 0.293000 0.000630 0.699000 6.660000 0.000000 2.810000 -0.440000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 1.010000;
+"AAI3X1.64                       " 18 450 6 1.390000 3.000000 0.130000 2.500000 0.200000 0.250000 2.240000 0.522000 1.490000 0.418000 0.019000 1.020000 0.000000 0.000000 0.000000 1.410000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 2.010000;
+"W10X33_SS                       " 38 501 10 9.710000 9.730000 0.290000 7.960000 0.435000 2.160000 171.000000 36.600000 38.800000 14.000000 0.583000 791.000000 18.500000 16.000000 7.750000 18.900000 0.935000 0.750000 0.000000 1.130000 0.000000 0.000000 0.000000 3.010000;
+"600T125-33                      " 39 200 2 0.294000 6.146000 0.034600 1.250000 0.000000 0.076400 1.430000 0.033800 0.178992 0.337488 0.000117 0.238000 4.220000 0.000000 2.290000 -0.516000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 3.000000;
+"600S137-33                      " 39 201 2 0.318000 6.000000 0.034600 1.375000 0.375000 0.076500 1.580000 0.068500 0.287772 0.518831 0.000127 0.500000 3.650000 0.000000 2.420000 -0.807000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 3.000000;
+[END_SHAPES_LIST]
+
+
+[CUSTOM_REPORT_SECTIONS_3D] <0>
+[END_CUSTOM_REPORT_SECTIONS_3D] 
+
+[MEMBERS]
+
+[.MEMBERS_MAIN_DATA] <21>
+"M1                              " "Tube                            " "HSS5X5X4                        " 6 7 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M2                              " "Tube                            " "HSS5X5X4                        " 7 8 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M3                              " "Tube                            " "HSS5X5X4                        " 8 9 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M4                              " "Tube                            " "HSS5X5X4                        " 9 10 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M5                              " "Tube                            " "HSS5X5X4                        " 10 11 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M6                              " "Tube                            " "HSS5X5X4                        " 11 12 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M7                              " "Tube                            " "HSS5X5X4                        " 12 13 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M8                              " "Tube                            " "HSS5X5X4                        " 13 14 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M9                              " "Tube                            " "HSS5X5X4                        " 1 2 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M10                             " "Tube                            " "HSS5X5X4                        " 2 3 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M11                             " "Tube                            " "HSS5X5X4                        " 3 4 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M12                             " "Tube                            " "HSS5X5X4                        " 4 5 0 0.000000 -1 0 0 1 4 0 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M13                             " "Tube                            " "HSS3X3X4                        " 7 2 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M14                             " "Tube                            " "HSS3X3X4                        " 2 9 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M15                             " "Tube                            " "HSS3X3X4                        " 9 3 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M16                             " "Tube                            " "HSS3X3X4                        " 3 11 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M17                             " "Tube                            " "HSS3X3X4                        " 11 4 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M18                             " "Tube                            " "HSS3X3X4                        " 4 13 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M19                             " "Tube                            " "HSS3X3X4                        " 8 2 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M20                             " "Tube                            " "HSS3X3X4                        " 10 3 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+"M21                             " "Tube                            " "HSS3X3X4                        " 12 4 0 0.000000 -1 0 0 1 4 3120 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 "                                " 0;
+[.END_MEMBERS_MAIN_DATA]
+
+[.MEMBERS_DESIGN_PARAMETERS] <21>
+"M1                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M2                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M3                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M4                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M5                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M6                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M7                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M8                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M9                              " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M10                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M11                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M12                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M13                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M14                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M15                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M16                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M17                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M18                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M19                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M20                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+"M21                             " 1 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 0 0 0 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 "Optimize                        " "Optimize                        " -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;
+[.END_MEMBERS_DESIGN_PARAMETERS]
+
+[.MEMBERS_BRB_DATA] <21>
+"M1                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M2                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M3                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M4                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M5                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M6                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M7                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M8                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M9                              " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M10                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M11                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M12                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M13                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M14                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M15                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M16                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M17                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M18                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M19                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M20                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+"M21                             " 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;
+[.END_MEMBERS_BRB_DATA]
+
+[.MEMBERS_SUPPLEMENTARY_DATA] <21>
+"M1                              " 0 0 0 -1 -1 65535 -1 "2ea60414-68e4-4e99-b4a0-05371ba62688" 0 0 0 "                                ";
+"M2                              " 0 0 0 -1 -1 65535 -1 "4efc3136-157f-483d-a008-571535b2287a" 0 0 0 "                                ";
+"M3                              " 0 0 0 -1 -1 65535 -1 "02213543-6376-4d30-afb4-873eabdb580f" 0 0 0 "                                ";
+"M4                              " 0 0 0 -1 -1 65535 -1 "bf247af9-044a-4830-a2f2-6f799a7b34fa" 0 0 0 "                                ";
+"M5                              " 0 0 0 -1 -1 65535 -1 "13646e77-db6c-40c3-8ab8-96e41d62414b" 0 0 0 "                                ";
+"M6                              " 0 0 0 -1 -1 65535 -1 "a04d6de2-890e-45ca-9f8d-5caeadbfa8d4" 0 0 0 "                                ";
+"M7                              " 0 0 0 -1 -1 65535 -1 "4b0f21d2-97ce-49e8-82f8-9c6208a34418" 0 0 0 "                                ";
+"M8                              " 0 0 0 -1 -1 65535 -1 "1616caf5-ba7d-4c1d-b11b-e434fdcbf8bc" 0 0 0 "                                ";
+"M9                              " 0 0 0 -1 -1 65535 -1 "d298147a-1fd6-40b0-866a-3d6d8d6b6aa3" 0 0 0 "                                ";
+"M10                             " 0 0 0 -1 -1 65535 -1 "e7cda1ea-b349-4e07-97b2-aedc014de63c" 0 0 0 "                                ";
+"M11                             " 0 0 0 -1 -1 65535 -1 "b4abef54-4e2e-4bda-aad7-a4272133e3b9" 0 0 0 "                                ";
+"M12                             " 0 0 0 -1 -1 65535 -1 "a91bd3b8-01b7-4fde-b4b9-b3847a447175" 0 0 0 "                                ";
+"M13                             " 0 0 0 -1 -1 65535 -1 "a26c620a-e4b9-4b6d-8161-5dc3a682c4a6" 0 0 0 "                                ";
+"M14                             " 0 0 0 -1 -1 65535 -1 "edac3648-a40f-453a-93ff-34662ae78815" 0 0 0 "                                ";
+"M15                             " 0 0 0 -1 -1 65535 -1 "e80d9e6c-d427-4efa-9300-fb91de0bf7ba" 0 0 0 "                                ";
+"M16                             " 0 0 0 -1 -1 65535 -1 "0a2392d1-f2fd-4bad-b37d-ec4ff820a551" 0 0 0 "                                ";
+"M17                             " 0 0 0 -1 -1 65535 -1 "e5fda11d-7855-44a8-aa53-7f67ccab866e" 0 0 0 "                                ";
+"M18                             " 0 0 0 -1 -1 65535 -1 "6f7a58b9-1f3d-4271-9c4e-8f93e690fa74" 0 0 0 "                                ";
+"M19                             " 0 0 0 -1 -1 65535 -1 "1558dc3a-9a37-44a8-8cb4-5d3700258ab4" 0 0 0 "                                ";
+"M20                             " 0 0 0 -1 -1 65535 -1 "7b84fe0b-07e9-41a8-8b17-3c8cfa1bb752" 0 0 0 "                                ";
+"M21                             " 0 0 0 -1 -1 65535 -1 "b8c48568-b9ed-4b19-9d17-7a16eee7549f" 0 0 0 "                                ";
+[.END_MEMBERS_SUPPLEMENTARY_DATA]
+
+[.MEMBERS_DETAILING_DATA] <21>
+"M1                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M2                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M3                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M4                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M5                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M6                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M7                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M8                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M9                              " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M10                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M11                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M12                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M13                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M14                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M15                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M16                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M17                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M18                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M19                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M20                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+"M21                             " 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;
+[.END_MEMBERS_DETAILING_DATA]
+
+[.MEMBERS_DESIGN_CALCMODE_PARAMETERS] <21>
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;
+[.END_MEMBERS_DESIGN_CALCMODE_PARAMETERS]
+
+[END_MEMBERS]
+
+
+[BASIC_LOAD_CASES] <2>
+1 "DL                              " 0 0 0 12 0 0 1 0.000000 -1.000000 0.000000 -1 1.000000 1;
+2 "RLL                             " 0 0 0 8 0 0 6 0.000000 0.000000 0.000000 -1 1.000000 6;
+[END_BASIC_LOAD_CASES]
+
+
+[DIRECT_DISTRIBUTED_LOADS] <20>
+1 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+2 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+3 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+4 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+5 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+6 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+7 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+8 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+9 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+10 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+11 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+12 89 -0.020000 -0.020000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+1 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+2 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+3 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+4 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+5 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+6 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+7 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+8 89 -0.040000 -0.040000 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;
+[END_DIRECT_DISTRIBUTED_LOADS]
+
+
+[TIME_HISTORY_INPUT]
+0 0 0.000000 0.250000 0.500000 0.000000 0.000000 5.000000 0.000000 1.000000;
+[END_TIME_HISTORY_INPUT]
+
+[EIGENSOLUTION_DATA] <1>
+3 1 0.000100 9 1 1 1 1 1 0 0 0 0 1 1 1 1 1 1 0 0 0 0 3;
+[END_EIGENSOLUTION_DATA]
+
+
+[RESPONSE_SPECTRA_DATA] <1>
+0 0 0 21 21 21 0 0 0 33.000000 33.000000 33.000000 1 5.000000 0;
+[END_RESPONSE_SPECTRA_DATA]
+
+
+[SPECTRA_SCALING_FACTOR] <1>
+-1.000000 -1.000000 -1.000000 -1.000000 2 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000;
+[END_SPECTRA_SCALING_FACTOR]
+
+
+[LOAD_COMBINATIONS] <9>
+"Deflection 1                                                                   " 0 1 0 0 0 1.000000 1.000000 1.000000 0 1 1 1 1 0 0 1 0 0 1 1 1 0 1 "DL                              " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"Deflection 2                                                                   " 0 1 0 0 0 1.000000 1.000000 1.000000 0 1 1 1 1 0 0 1 0 0 1 1 1 0 1 "LL                              " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"Deflection 3                                                                   " 0 1 0 0 0 1.000000 1.000000 1.000000 0 1 1 1 1 0 0 1 0 0 1 1 1 0 1 "DL                              " 1.000000 "LL                              " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 1a                                                        " 0 1 1 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 1.400000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 2a (1)                                                    " 0 1 0 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 1.200000 "LL                              " 1.600000 "LLS                             " 1.600000 "RLL                             " 0.500000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 2a (2)                                                    " 0 1 0 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 1.200000 "LL                              " 1.600000 "LLS                             " 1.600000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 3a (1)                                                    " 0 1 1 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 1.200000 "RLL                             " 1.600000 "LL                              " 0.500000 "LLS                             " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 6                                                         " 0 1 0 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 1.200000 "EL                              " 1.000000 "LL                              " 0.500000 "LLS                             " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+"IBC 24/ASCE Strength 7                                                         " 0 1 0 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 "DL                              " 0.900000 "EL                              " 1.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000 "                                " 0.000000;
+[END_LOAD_COMBINATIONS]
+
+
+[FILE_INFORMATION]
+
+[.FILE_SOURCE] <1>
+2;
+[.END_FILE_SOURCE]
+
+[.FILE_TYPE] <1>
+0;
+[.END_FILE_TYPE]
+
+[END_FILE_INFORMATION]
+
+
+[NUM_RF_BLC] <1>
+27;
+[END_NUM_RF_BLC]
+
+
+[RISA_3D_FINISH]
+0
+[FINISH]</script>
+<script>
+"use strict";
+/* ============ units & helpers ============ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const r4 = v => Math.round(v * 10000) / 10000;
+
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+function fmtLen(ft) {
+  if (!isFinite(ft)) return "";
+  const neg = ft < 0; let t = Math.round(Math.abs(ft) * 12 * 16) / 16;
+  let f = Math.floor(t / 12 + 1e-9); let inch = t - f * 12;
+  let w = Math.floor(inch + 1e-9); let n = Math.round((inch - w) * 16);
+  if (n === 16) { w++; n = 0; } if (w === 12) { f++; w = 0; }
+  let frac = ""; if (n) { const g = gcd(n, 16); frac = " " + (n / g) + "/" + (16 / g); }
+  return (neg ? "-" : "") + f + "'-" + w + frac + '"';
+}
+function parseInches(s) {
+  s = s.trim().replace(/^-/, "").trim(); if (!s) return 0;
+  let tot = 0; const parts = s.split(/[\s-]+/).filter(Boolean);
+  for (const p of parts) {
+    if (/^\d+\/\d+$/.test(p)) { const [a, b] = p.split("/").map(Number); if (!b) return NaN; tot += a / b; }
+    else if (/^\d*\.?\d+$/.test(p)) tot += parseFloat(p);
+    else return NaN;
+  }
+  return tot;
+}
+function parseLen(str) {
+  if (str == null) return NaN; let s = String(str).trim().replace(/[’′]/g, "'").replace(/[”″]/g, '"');
+  if (!s) return NaN; let neg = false; if (s[0] === "-") { neg = true; s = s.slice(1).trim(); }
+  let v;
+  if (/^\d*\.?\d+$/.test(s)) v = parseFloat(s);
+  else if (s.includes("'")) { const [ft, rest] = s.split("'"); const f = parseFloat(ft); const i = parseInches(rest.replace(/"/g, "")); v = (isFinite(f) ? f : NaN) + i / 12; }
+  else if (s.includes('"')) v = parseInches(s.replace(/"/g, "")) / 12;
+  else v = NaN;
+  return neg ? -v : v;
+}
+function parsePitch(s) { s = String(s).trim(); if (s.includes("/")) { const [a, b] = s.split("/").map(Number); return b ? a / b * 12 : NaN; } return parseFloat(s); }
+
+/* ============ state ============ */
+const ROLES = { top: "Top chord", bottom: "Bottom chord", web: "Web", vertical: "Vertical", other: "Other" };
+const ROLE_COLOR = { top: "var(--tc)", bottom: "var(--bc)", web: "var(--web)", vertical: "var(--vert)", other: "var(--oth)" };
+let seq = 1; const key = p => p + (seq++);
+function blankState() {
+  return {
+    meta: { mark: "", spacingIn: 24, spacingSrc: "", plies: 1, grade: "", material: "", steelGrade: "", count: 1, keyNotes: "", planar: true,
+            unit: { tc: 1, bc: 1 }, up: "Y", headers: false },
+    defaults: { top: { size: "HSS5X5X4", end: "cont" }, bottom: { size: "HSS5X5X4", end: "cont" }, web: { size: "HSS3X3X4", end: "pin" },
+                vertical: { size: "HSS3X3X4", end: "pin" }, other: { size: "HSS3X3X4", end: "cont" } },
+    nodes: [], members: [], supports: [], notes: [], example: false
+  };
+}
+let S = blankState();
+let history = [];
+function snap() { history.push(JSON.stringify(S)); if (history.length > 60) history.shift(); }
+function undo() { if (!history.length) return toast("Nothing to undo"); S = JSON.parse(history.pop()); fixSeq(); renderAll(); }
+function fixSeq() { let m = 0; for (const o of [...S.nodes, ...S.members]) m = Math.max(m, parseInt(String(o.k).slice(1)) || 0); seq = m + 1; }
+
+const nodeByK = k => S.nodes.find(n => n.k === k);
+const nodeLabel = k => { const i = S.nodes.findIndex(n => n.k === k); return i < 0 ? "?" : "N" + (i + 1); };
+const memLabel = k => { const i = S.members.findIndex(m => m.k === k); return i < 0 ? "?" : "M" + (i + 1); };
+const effSize = m => (m.size && m.size.trim()) || S.defaults[m.role]?.size || "";
+const effEnd = (m, end) => { const v = end === "i" ? m.endI : m.endJ; return v && v !== "def" ? v : (S.defaults[m.role]?.end || "cont"); };
+function memLen(m) { const a = nodeByK(m.i), b = nodeByK(m.j); return a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0; }
+function addNode(x, y, extra = {}) { const n = { k: key("n"), x: r4(x), y: r4(y), ...extra }; S.nodes.push(n); return n; }
+function addMember(i, j, role, extra = {}) { const m = { k: key("m"), i, j, role, size: "", endI: "def", endJ: "def", fixed: false, ...extra }; S.members.push(m); return m; }
+/* nodal restraints: [X, Y, Z, MX, MY, MZ], each "" free, "R" reaction, "F" fixed (no reaction reported) */
+const DOF = ["X", "Y", "Z", "MX", "MY", "MZ"];
+function anchorPin() { const pins = S.supports.filter(s => s.type === "pin").map(s => nodeByK(s.node)).filter(Boolean); pins.sort((a, b) => a.x - b.x || a.y - b.y); return pins[0]?.k; }
+function autoBC(k) {
+  const s = S.supports.find(q => q.node === k); const c = ["", "", "", "", "", ""];
+  if (s?.type === "fixed") return ["R", "R", "R", "R", "R", "R"];
+  if (s?.type === "pin") { c[0] = "R"; c[1] = "R"; } if (s?.type === "roller") c[1] = "R";
+  if (S.meta.planar) { if (k === anchorPin()) { c[2] = "R"; c[3] = "F"; } else c[2] = "F"; }
+  return c;
+}
+function effBC(k) { const n = nodeByK(k); return n?.bc ? n.bc.slice() : autoBC(k); }
+const isRestr = v => v === "R" || v === "F";
+function guessRole(a, b) {
+  const ys = S.nodes.map(n => n.y); const minY = Math.min(...ys);
+  const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+  if (dx < 1e-6 || dy / Math.max(dx, 1e-9) > 8) return "vertical";
+  if (Math.abs(a.y - minY) < 0.05 && Math.abs(b.y - minY) < 0.05) return "bottom";
+  return "web";
+}
+
+/* ============ templates ============ */
+function generate(type, L, pitch, heel, depth, n) {
+  const st = blankState(); st.meta = S.meta; st.defaults = S.defaults; S = st;
+  const nodes = new Map(); const id = (x, y) => { const kk = r4(x) + "," + r4(y); if (!nodes.has(kk)) nodes.set(kk, addNode(x, y).k); return nodes.get(kk); };
+  const M = (a, b, role) => { if (a !== b) addMember(a, b, role); };
+  const slope = pitch / 12;
+  if (type === "flat") {
+    n = Math.max(2, n | 0); const T = [], B = [];
+    for (let i = 0; i <= n; i++) { B.push(id(i * L / n, 0)); }
+    for (let i = 0; i <= n; i++) { T.push(id(i * L / n, depth)); }
+    for (let i = 0; i < n; i++) { M(T[i], T[i + 1], "top"); }
+    for (let i = 0; i < n; i++) { M(B[i], B[i + 1], "bottom"); }
+    for (let i = 0; i <= n; i++) M(B[i], T[i], "vertical");
+    for (let i = 0; i < n; i++) { if (i < n / 2) M(T[i], B[i + 1], "web"); else M(B[i], T[i + 1], "web"); }
+    S.supports = [{ node: B[0], type: "pin" }, { node: B[n], type: "roller" }];
+    return;
+  }
+  if (type === "mono") {
+    n = Math.max(2, n | 0); const top = x => heel + slope * x; const T = [], B = [];
+    for (let i = 0; i <= n; i++) B.push(id(i * L / n, 0));
+    for (let i = 0; i <= n; i++) T.push(id(i * L / n, top(i * L / n)));
+    for (let i = 0; i < n; i++) M(T[i], T[i + 1], "top");
+    for (let i = 0; i < n; i++) M(B[i], B[i + 1], "bottom");
+    for (let i = 0; i <= n; i++) if (T[i] !== B[i]) M(B[i], T[i], "vertical");
+    for (let i = 0; i < n; i++) if (i > 0 || heel > 0) M(T[i], B[i + 1], "web");
+    S.supports = [{ node: B[0], type: "pin" }, { node: B[n], type: "roller" }];
+    return;
+  }
+  const topY = x => heel + slope * Math.min(x, L - x);
+  const B0 = id(0, 0), BL = id(L, 0); const H0 = id(0, heel), HL = id(L, heel);
+  if (heel > 0) { M(B0, H0, "vertical"); M(BL, HL, "vertical"); }
+  if (type === "fink") {
+    const B1 = id(L / 3, 0), B2 = id(2 * L / 3, 0), T1 = id(L / 4, topY(L / 4)), P = id(L / 2, topY(L / 2)), T3 = id(3 * L / 4, topY(3 * L / 4));
+    [[H0, T1], [T1, P], [P, T3], [T3, HL]].forEach(([a, b]) => M(a, b, "top"));
+    [[B0, B1], [B1, B2], [B2, BL]].forEach(([a, b]) => M(a, b, "bottom"));
+    [[B1, T1], [B1, P], [B2, P], [B2, T3]].forEach(([a, b]) => M(a, b, "web"));
+    if (heel > 0) { M(H0, B1, "web"); M(HL, B2, "web"); }
+  } else {
+    n = Math.max(2, (n | 0) + ((n | 0) % 2)); const B = [B0], T = [H0];
+    for (let i = 1; i < n; i++) { B.push(id(i * L / n, 0)); T.push(id(i * L / n, topY(i * L / n))); }
+    B.push(BL); T.push(HL);
+    for (let i = 0; i < n; i++) { M(T[i], T[i + 1], "top"); M(B[i], B[i + 1], "bottom"); }
+    for (let i = 1; i < n; i++) M(B[i], T[i], "vertical");
+    const h = n / 2;
+    for (let i = 0; i < n; i++) {
+      if (i === 0 && heel <= 0) continue; if (i === n - 1 && heel <= 0) continue;
+      if (type === "pratt") { if (i < h) M(T[i], B[i + 1], "web"); else M(B[i], T[i + 1], "web"); }
+      else { if (i < h) M(B[i], T[i + 1], "web"); else M(T[i], B[i + 1], "web"); }
+    }
+  }
+  S.supports = [{ node: B0, type: "pin" }, { node: BL, type: "roller" }];
+}
+function sortNodes() { S.nodes.sort((p, q) => (p.x - q.x) || (p.y - q.y)); }
+
+/* ============ checks ============ */
+function runChecks() {
+  const out = []; const add = (lvl, msg, refs = []) => out.push({ lvl, msg, refs: refs.filter(Boolean) });
+  if (!S.nodes.length) add("bad", "No nodes yet. Read a drawing, start from a template, or add nodes in the model.");
+  const used = new Set(); const pairs = new Map();
+  for (const m of S.members) {
+    const a = nodeByK(m.i), b = nodeByK(m.j), L = memLabel(m.k);
+    if (!a || !b) { add("bad", `${L} references a node that no longer exists. Delete it or reconnect it in the Members table.`, [a || b ? m.k : null]); continue; }
+    used.add(m.i); used.add(m.j);
+    if (memLen(m) < 1e-3) add("bad", `${L} has zero length. Its two ends are on the same spot; delete it or move one node.`, [m.k]);
+    const pk = [m.i, m.j].sort().join("|"); if (pairs.has(pk)) add("bad", `${L} duplicates ${pairs.get(pk).L}. Delete one of them.`, [m.k]); else pairs.set(pk, { L, k: m.k });
+    if (!effSize(m)) add("bad", `${L} has no size. Set one in the Members table, or set a default for ${ROLES[m.role]}.`, [m.k]);
+    else if (!normHSS(effSize(m)) && !rectDims(shapeName(m))) add("warn", `${L}: "${esc(effSize(m))}" isn't a recognized HSS or lumber size, so RISA may not find it. Use names like HSS5X5X4 or 2x6.`, [m.k]);
+    if (m.conf === "low") add("warn", `${L}: Claude was unsure of this member (${esc(m.note || "low confidence")}). Check it against the drawing.`, [m.k]);
+  }
+  for (const n of S.nodes) if (!used.has(n.k)) add("warn", `${nodeLabel(n.k)} is not connected to any member. Connect it with Add member, or delete it.`, [n.k]);
+  const bcs = S.nodes.map(n => ({ n, c: effBC(n.k) }));
+  const inPlane = bcs.filter(b => isRestr(b.c[0]) || isRestr(b.c[1]));
+  if (S.nodes.length && !inPlane.length) add("bad", "No supports. Set restraints on the Nodes tab, or add a pin and a roller on the Supports tab.");
+  else if (inPlane.length) {
+    if (!bcs.some(b => isRestr(b.c[0]))) add("bad", "Nothing restrains X, so the truss can slide sideways. Set X to Reaction at one support on the Nodes tab.", inPlane.map(b => b.n.k));
+    if (!bcs.some(b => isRestr(b.c[1]))) add("bad", "Nothing restrains Y, so the truss has no vertical support. Set Y to Reaction at the bearings on the Nodes tab.", inPlane.map(b => b.n.k));
+    const rr = bcs.reduce((t, b) => t + [0, 1, 5].filter(d => isRestr(b.c[d])).length, 0);
+    if (rr < 3) add("bad", `Only ${rr} in-plane restraints (X, Y, MZ), so the truss can still move. Add a roller or a second pin.`, inPlane.map(b => b.n.k));
+  }
+  for (const s of S.supports) if (!nodeByK(s.node)) add("bad", "A support points at a deleted node.");
+  if (S.meta.planar) { const free = bcs.filter(b => !isRestr(b.c[2])); if (free.length && free.length < S.nodes.length) add("warn", `${free.map(b => nodeLabel(b.n.k)).join(", ")}: Z is free while the rest of the truss is held in plane. Set Z to Fixed or Reaction.`, free.map(b => b.n.k)); }
+  for (const n of S.nodes) {
+    const ends = []; for (const m of S.members) { if (m.i === n.k) ends.push(effEnd(m, "i")); if (m.j === n.k) ends.push(effEnd(m, "j")); }
+    if (ends.length && ends.every(e => e === "pin") && !isRestr(effBC(n.k)[5]))
+      add("warn", `${nodeLabel(n.k)}: every member is pinned here, so the joint can spin (Z rotation). RISA will flag it. Make one member continuous at this node.`, [n.k]);
+  }
+  if (S.meta.count > 1 && !(S.meta.spacingIn > 0)) add("bad", "More than one truss is set but spacing is 0, so they would overlap.");
+  if (!S.members.some(m => m.role === "top")) add("warn", "No top chord members, so the TC UNIT load case will be empty.");
+  if (!S.members.some(m => m.role === "bottom")) add("warn", "No bottom chord members, so the BC UNIT load case will be empty.");
+  const j = S.nodes.length, m = S.members.length, r = S.nodes.reduce((t, n) => { const c = effBC(n.k); return t + (isRestr(c[0]) ? 1 : 0) + (isRestr(c[1]) ? 1 : 0); }, 0);
+  if (j && m + r < 2 * j) add("bad", `As a pin-jointed truss, ${m} members + ${r} reactions < 2 × ${j} joints. It is likely a mechanism; a web or support is probably missing.`);
+  if (!out.some(o => o.lvl === "bad")) add("ok", `Model is ready to export: ${j} nodes, ${m} members, ${inPlane.length} supported nodes.`);
+  const rank = { bad: 0, warn: 1, ok: 2 }; out.sort((a, b) => rank[a.lvl] - rank[b.lvl]);
+  let n = 0; for (const o of out) if (o.lvl !== "ok") o.n = ++n;
+  return out;
+}
+
+/* ============ RISA export ============ */
+function shapeName(m) {
+  const h = normHSS(effSize(m)); if (h) return h.name;
+  let s = effSize(m).toUpperCase().replace(/\s+/g, "").replace(/×/g, "X");
+  if (S.meta.plies > 1 && !/^\d-/.test(s)) s = S.meta.plies + "-" + s;
+  return s;
+}
+/* Steel HSS (AISC database shapes, RISA names like HSS5X5X4 = 1/4" wall in sixteenths) */
+function normHSS(str) {
+  const m = String(str || "").toUpperCase().replace(/\s+/g, "").replace(/×/g, "X").replace(/"/g, "").match(/^HSS(\d+(?:\.\d+)?)X(\d+(?:\.\d+)?)X(\d+\/\d+|\d*\.\d+|\d+)$/);
+  if (!m) return null; const H = +m[1], B = +m[2]; let tn;
+  if (m[3].includes("/")) { const [a, b] = m[3].split("/").map(Number); tn = a / b; } else if (m[3].includes(".")) tn = +m[3]; else tn = +m[3] / 16;
+  if (!(tn > 0 && tn < Math.min(H, B) / 2)) return null;
+  const n16 = Math.round(tn * 16); const fmt = v => String(+v.toFixed(3));
+  return { name: `HSS${fmt(Math.max(H, B))}X${fmt(Math.min(H, B))}X${n16}`, H: Math.max(H, B), B: Math.min(H, B), tn: n16 / 16 };
+}
+function hssProps({ H, B, tn }) { // AISC: design wall 0.93 t, outside corner radius 2t
+  const t = Math.round(0.93 * tn * 1000) / 1000, ro = 2 * t, ri = t, N = 4000;
+  const w = (y, h, b, r) => { y = Math.abs(y); if (y > h) return 0; if (y <= h - r) return 2 * b; const dy = y - (h - r); return 2 * (b - r + Math.sqrt(Math.max(0, r * r - dy * dy))); };
+  const sec = (Hh, Bb) => { let A = 0, I = 0, Z = 0; const dy = Hh / N;
+    for (let k = 0; k < N; k++) { const y = -Hh / 2 + (k + 0.5) * dy; const ww = w(y, Hh / 2, Bb / 2, ro) - w(y, Hh / 2 - t, Bb / 2 - t, ri); A += ww * dy; I += ww * y * y * dy; Z += ww * Math.abs(y) * dy; }
+    return { A, I, Z }; };
+  const sx = sec(H, B), sy = sec(B, H); const rm = 1.5 * t;
+  const Ap = (B - t) * (H - t) - (4 - Math.PI) * rm * rm, per = 2 * (B - t) + 2 * (H - t) - 2 * (4 - Math.PI) * rm; const J = 4 * Ap * Ap * t / per;
+  return { t, A: sx.A, Izz: sx.I, Iyy: sy.I, Zzz: sx.Z, Zyy: sy.Z, J };
+}
+function layout() {
+  const cnt = Math.max(1, S.meta.count | 0); const dz = (S.meta.spacingIn || 0) / 12;
+  const nodes = [], members = [], supports = [];
+  const nIdx = new Map(); S.nodes.forEach((n, i) => nIdx.set(n.k, i));
+  for (let t = 0; t < cnt; t++) {
+    const off = t * S.nodes.length;
+    S.nodes.forEach(n => nodes.push({ label: "N" + (nodes.length + 1), x: n.x, y: n.y, z: r4(t * dz) }));
+    S.members.forEach(m => { if (!nIdx.has(m.i) || !nIdx.has(m.j)) return;
+      members.push({ label: "M" + (members.length + 1), i: "N" + (off + nIdx.get(m.i) + 1), j: "N" + (off + nIdx.get(m.j) + 1),
+        m, shape: shapeName(m), relI: effEnd(m, "i") === "pin" ? "BenPIN" : "", relJ: effEnd(m, "j") === "pin" ? "BenPIN" : "", t }); });
+    S.nodes.forEach((n, i) => { const c = effBC(n.k); if (c.some(isRestr)) supports.push({ node: "N" + (off + i + 1), bc: c }); });
+  }
+  return { nodes, members, supports };
+}
+function tables() {
+  const L = layout(); const up = S.meta.up; const planar = S.meta.planar;
+  const T = {};
+  T.nodes = { title: "Nodes", where: "Nodes spreadsheet", head: ["Label", "X (ft)", "Y (ft)", "Z (ft)"],
+    rows: L.nodes.map(n => [n.label, n.x, up === "Z" ? n.z : n.y, up === "Z" ? n.y : n.z]) };
+  T.members = { title: "Members – primary data", where: "Members › Primary Data", head: ["Label", "I Node", "J Node", "K Node", "Rotate (deg)", "Section/Shape", "Type", "Design List", "Material"],
+    rows: L.members.map(m => { const h = normHSS(m.shape); return [m.label, m.i, m.j, "", 0, m.shape, "Beam", h ? "Tube" : "Rectangular", h ? steelMat(m.shape).label : woodMat(m.m).label]; }) };
+  T.releases = { title: "Member end releases", where: "Members › Advanced Data (I Release, J Release)", head: ["Label", "I Release", "J Release"],
+    rows: L.members.map(m => [m.label, m.relI, m.relJ]) };
+  // boundary conditions straight from each node's six restraints (axes swapped when the tables are Z-up)
+  const cols = ["X", "Y", "Z", "X Rot", "Y Rot", "Z Rot"]; const ord = up === "Z" ? [0, 2, 1, 3, 5, 4] : [0, 1, 2, 3, 4, 5];
+  const bRows = L.supports.map(s => [s.node, ...ord.map(d => s.bc[d])]);
+  T.boundary = { title: "Boundary conditions", where: "Boundary Conditions (R = Reaction, F = Fixed)", head: ["Node Label", ...cols], rows: bRows };
+  const gdir = up === "Z" ? "Z" : "Y"; const lh = ["Member Label", "Direction", "Start Magnitude (k/ft)", "End Magnitude (k/ft)", "Start Location (ft)", "End Location (ft)"];
+  const unitRows = (role, v) => v ? L.members.filter(m => m.m.role === role).map(m => [m.label, gdir, -v, -v, 0, 0]) : [];
+  T.tc = { title: "Top chord unit load", where: "Member Distributed Loads, load case TC UNIT", head: lh, rows: unitRows("top", S.meta.unit.tc) };
+  T.bc = { title: "Bottom chord unit load", where: "Member Distributed Loads, load case BC UNIT", head: lh, rows: unitRows("bottom", S.meta.unit.bc) };
+  return { T, L };
+}
+const toTSV = (t, h) => (h ? [t.head, ...t.rows] : t.rows).map(r => r.join("\t")).join("\r\n");
+const toCSV = t => [t.head, ...t.rows].map(r => r.map(v => { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(",")).join("\r\n");
+/* ============ Claude drawing reader ============ */
+let sampleFn = null, sampleImgLimit = 0, aiCtl = null;
+const drawing = { files: [], active: 0, crop: null }; // files: {name, blob, url, kind:'truss'|'key', w,h}
+function buildPrompt(hasCrop, hasKey, sc) {
+  const imgs = ["Image 1 is the full truss drawing sheet."];
+  if (sc) imgs.push(`Image 1 was photographed at an angle and has been perspective-corrected into a TRUE ELEVATION at one uniform scale. A point at fraction (u, v) of the image (u from the left, v from the top) is at x_ft = ${r4(sc.xmin)} + u × ${r4(sc.wft)} and y_ft = ${r4(sc.ymax)} − v × ${r4(sc.hft)}. The origin (0, 0) is the user's reference pin 1. Prefer printed dimensions; where none are shown, measure from the image with this scale and report img_u / img_v accurately.`);
+  if (hasCrop) imgs.push(`Image ${imgs.length + 1} is a crop of the same sheet around the truss elevation, at higher detail. Use it to read member sizes and dimensions.`);
+  if (hasKey) imgs.push(`Image ${imgs.length + 1} is a key plan / framing plan that may show truss marks, locations, count and spacing.`);
+  return `You are a structural engineer turning a wood truss drawing into an analytical model for RISA-3D.
+${imgs.join("\n")}
+
+Build a 2D stick model in the truss plane:
+- Units: feet. Origin (0,0) at the LEFT bearing, on the bottom chord line. X to the right, Y up.
+- Place nodes at panel points (where webs meet chords), heels, peak, and bearings. Use the printed dimensions (span, panel point dimensions, pitch, heel height, overall height) to compute coordinates; do not just scale pixels unless no dimensions exist.
+- Split chords at every panel point: one member per chord segment between adjacent nodes.
+- role is one of: top, bottom, web, vertical, other.
+- size: member size as printed. Steel tubes like "HSS5x5x1/4"; lumber like "2x4", "2-2x8". null if not shown.
+- grade: as printed, like "SPF #2", "SP #1", "DF-L SS". null if not shown.
+- supports: bearings. Typically one pin and the rest rollers. Note bearing widths in the note.
+- spacing: look for "@ 24\\" o.c.", "spacing", "SPA" on the drawing or key plan. Report inches.
+- img_u / img_v: each node's position on IMAGE 1 as a fraction of width and height (0..1, v from the top). Approximate is fine.
+- confidence per member: high, medium or low; give a short note when low.
+
+Reply with ONLY this JSON, no commentary:
+{"truss_mark":string|null,"truss_type":string|null,"span_ft":number|null,"pitch_per_12":number|null,"heel_ft":number|null,
+"plies":integer,"grade_default":string|null,"spacing_in":number|null,"spacing_source":"drawing"|"key plan"|"not shown",
+"nodes":[{"id":"A","x_ft":0,"y_ft":0,"img_u":0.1,"img_v":0.8}],
+"members":[{"i":"A","j":"B","role":"bottom","size":"2x4","grade":"SPF #2","confidence":"high","note":""}],
+"supports":[{"node":"A","type":"pin","note":"3-1/2\\" bearing"}],
+"key_plan":{"present":boolean,"truss_count":integer|null,"spacing_in":number|null,"notes":string|null},
+"notes":[string],"uncertain":[string]}`;
+}
+async function cropBlob(file) {
+  const c = drawing.crop; if (!c) return null;
+  const img = await createImageBitmap(file.blob);
+  const sx = c.x * img.width, sy = c.y * img.height, sw = c.w * img.width, sh = c.h * img.height;
+  if (sw < 20 || sh < 20) return null;
+  const cv = document.createElement("canvas"); cv.width = Math.round(sw); cv.height = Math.round(sh);
+  cv.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+  return await new Promise(r => cv.toBlob(r, "image/png"));
+}
+async function readDrawing() {
+  const truss = drawing.files.find(f => f.kind === "truss"); if (!truss || !sampleFn) return;
+  const key = drawing.files.find(f => f.kind === "key");
+  const images = [truss.blob]; let hasCrop = false, hasKey = false;
+  const cb = await cropBlob(truss); if (cb && images.length < sampleImgLimit) { images.push(cb); hasCrop = true; }
+  if (key && images.length < sampleImgLimit) { images.push(key.blob); hasKey = true; }
+  aiCtl = new AbortController(); setAI("work", "Claude is reading the drawing. A detailed sheet takes about a minute.");
+  $("#btnRead").disabled = true; $("#btnStop").hidden = false;
+  try {
+    const res = await sampleFn.json(buildPrompt(hasCrop, hasKey, truss.scale), { images, modelTier: "complex", signal: aiCtl.signal,
+      onText: () => setAI("work", "Claude is writing the model…") });
+    applyAI(res);
+    const lows = S.members.filter(m => m.conf === "low").length;
+    setAI("good", `Read ${S.nodes.length} nodes and ${S.members.length} members.${lows ? ` ${lows} flagged as uncertain (amber edge in the table).` : ""} Compare the overlay with the drawing, then review Checks.`);
+  } catch (e) {
+    const c = e && e.code;
+    const msg = { cancelled: "Stopped.", not_granted: "Claude access wasn't allowed for this page, so the reader is off. Use a template or build the model by hand.",
+      sampling_disabled: "Claude isn't available for this account here. Use a template or build the model by hand.",
+      images_unavailable: "This view can't send images to Claude.", image_rejected: "That image couldn't be used. Try a PNG or JPG under 20 MB.",
+      rate_limited: "Too many requests right now. Wait a minute and try again.", invalid_json: "Claude's reply wasn't a usable model. Try again, or crop tighter to the truss.",
+      refused: "Claude declined this image. Try a cleaner crop of the truss elevation." }[c] || ("Reading failed (" + (c || "error") + "). Try again.");
+    setAI(c === "cancelled" ? "" : "bad", msg);
+    if (["not_granted", "sampling_disabled", "images_unavailable"].includes(c)) { sampleFn = null; }
+  } finally { $("#btnRead").disabled = !canRead(); $("#btnStop").hidden = true; aiCtl = null; }
+}
+function normRole(r) { r = String(r || "").toLowerCase(); if (r.startsWith("top")) return "top"; if (r.startsWith("bot")) return "bottom"; if (r.startsWith("vert")) return "vertical"; if (r.startsWith("web") || r.includes("diag")) return "web"; return "other"; }
+function applyAI(d) {
+  if (!d || !Array.isArray(d.nodes) || !Array.isArray(d.members)) throw { code: "invalid_json" };
+  snap();
+  const keep = $("#chkKeep").checked ? S.members.filter(m => m.fixed).map(m => ({ m, a: nodeByK(m.i), b: nodeByK(m.j) })) : [];
+  const meta = S.meta, defaults = S.defaults; S = blankState(); S.meta = meta; S.defaults = defaults;
+  const map = new Map();
+  const sc = drawing.files.find(f => f.kind === "truss")?.scale;
+  for (const n of d.nodes) { let x = Number(n.x_ft), y = Number(n.y_ft);
+    if ((!isFinite(x) || !isFinite(y)) && sc && isFinite(Number(n.img_u)) && isFinite(Number(n.img_v))) { x = sc.xmin + Number(n.img_u) * sc.wft; y = sc.ymax - Number(n.img_v) * sc.hft; }
+    if (!isFinite(x) || !isFinite(y)) continue;
+    const u = Number(n.img_u), v = Number(n.img_v);
+    map.set(String(n.id), addNode(x, y, isFinite(u) && isFinite(v) ? { u, v } : {}).k); }
+  for (const m of d.members) { const i = map.get(String(m.i)), j = map.get(String(m.j)); if (!i || !j || i === j) continue;
+    addMember(i, j, normRole(m.role), { size: m.size ? String(m.size) : "", grade: m.grade || "", conf: m.confidence || "", note: m.note || "" }); }
+  for (const s of d.supports || []) { const k = map.get(String(s.node)); if (k) S.supports.push({ node: k, type: ["pin", "roller", "fixed"].includes(s.type) ? s.type : "pin", note: s.note || "" }); }
+  // re-apply members the user fixed, matched by end coordinates
+  const near = (p, q) => p && q && Math.hypot(p.x - q.x, p.y - q.y) < 0.25;
+  for (const { m, a, b } of keep) {
+    const hit = S.members.find(x => { const p = nodeByK(x.i), q = nodeByK(x.j); return (near(p, a) && near(q, b)) || (near(p, b) && near(q, a)); });
+    if (hit) Object.assign(hit, { size: m.size, endI: m.endI, endJ: m.endJ, role: m.role, fixed: true, conf: "" });
+  }
+  if (d.truss_mark) S.meta.mark = String(d.truss_mark);
+  if (d.plies > 0) S.meta.plies = d.plies | 0;
+  if (d.grade_default) S.meta.grade = String(d.grade_default);
+  const kp = d.key_plan || {};
+  const sp = Number(d.spacing_in) || Number(kp.spacing_in);
+  if (sp > 0) { S.meta.spacingIn = sp; S.meta.spacingSrc = d.spacing_in ? (d.spacing_source || "drawing") : "key plan"; }
+  else S.meta.spacingSrc = "";
+  if (kp.present && kp.truss_count > 0) S.meta.count = Math.min(200, kp.truss_count | 0);
+  if (kp.notes) S.meta.keyNotes = String(kp.notes);
+  S.notes = [...(d.notes || []), ...(d.uncertain || []).map(u => "Unsure: " + u)].map(String);
+  if (d.span_ft) S.notes.unshift(`Span ${fmtLen(d.span_ft)}${d.pitch_per_12 ? `, ${d.pitch_per_12}/12 pitch` : ""}${d.truss_type ? `, ${d.truss_type}` : ""}.`);
+  S.example = false; selected = null; renderAll();
+}
+function setAI(cls, msg) { const el = $("#aiStatus"); el.className = "status " + (cls || ""); el.textContent = msg; }
+const canRead = () => !!sampleFn && drawing.files.some(f => f.kind === "truss");
+
+/* ============ drawing files ============ */
+let pdfDoc = null, pdfFile = null;
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("load")); document.head.appendChild(s); }); }
+async function ensurePdf() {
+  if (window.pdfjsLib) return;
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+  await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js");
+}
+async function renderPdfPage(num) {
+  const page = await pdfDoc.getPage(num); const vp1 = page.getViewport({ scale: 1 });
+  const scale = Math.min(3, 3200 / Math.max(vp1.width, vp1.height)); const vp = page.getViewport({ scale });
+  const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+  const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  return await new Promise(r => cv.toBlob(r, "image/png"));
+}
+async function addFiles(list) {
+  for (const f of list) {
+    let blob = f, name = f.name;
+    try {
+      if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)) {
+        toast("Rendering PDF…"); await ensurePdf();
+        pdfDoc = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise; pdfFile = name;
+        const sel = $("#pdfPage"); sel.innerHTML = Array.from({ length: pdfDoc.numPages }, (_, i) => `<option value="${i + 1}">Page ${i + 1} of ${pdfDoc.numPages}</option>`).join("");
+        $("#pdfRow").hidden = pdfDoc.numPages < 2; blob = await renderPdfPage(1); name = name.replace(/\.pdf$/i, "") + " p1.png";
+      } else if (!/^image\/(png|jpeg|webp|gif)$/.test(f.type)) { toast(`${f.name}: use PNG, JPG or PDF.`); continue; }
+    } catch (e) { toast("That PDF couldn't be opened here. Export the page as PNG and drop it in."); continue; }
+    const kind = drawing.files.some(x => x.kind === "truss") ? "key" : "truss";
+    if (kind === "key" && drawing.files.some(x => x.kind === "key")) { const old = drawing.files.findIndex(x => x.kind === "key"); URL.revokeObjectURL(drawing.files[old].url); drawing.files.splice(old, 1); }
+    drawing.files.push({ name, blob, url: URL.createObjectURL(blob), kind });
+    if (kind === "truss") { drawing.crop = null; drawing.active = drawing.files.length - 1; }
+  }
+  renderDrawing();
+}
+function renderDrawing() {
+  $("#thumbs").innerHTML = drawing.files.map((f, i) => `<span class="thumb"><button data-show="${i}" style="padding:0;border:0;background:none;color:var(--ink)${i === drawing.active ? ";font-weight:600" : ""}">${f.kind === "truss" ? "Truss" : f.kind === "key" ? "Key plan" : "Original"}: ${esc(f.name)}${f.scale ? " (straightened)" : ""}</button>
+    <select data-kind="${i}" aria-label="File role"><option value="truss"${f.kind === "truss" ? " selected" : ""}>Truss</option><option value="key"${f.kind === "key" ? " selected" : ""}>Key plan</option><option value="orig"${f.kind === "orig" ? " selected" : ""}>Not sent</option></select>
+    <button data-rm="${i}" aria-label="Remove ${esc(f.name)}">✕</button></span>`).join("");
+  const f = drawing.files[drawing.active];
+  $("#imgbox").hidden = !f; $("#drop").style.display = drawing.files.some(x => x.kind === "truss") && drawing.files.some(x => x.kind === "key") ? "none" : "";
+  if (f) { if ($("#img").src !== f.url) $("#img").src = f.url; }
+  $("#btnRead").disabled = !canRead();
+  renderOverlay(); stRenderPins();
+}
+function renderOverlay() {
+  const svg = $("#overlay"); const f = drawing.files[drawing.active];
+  if (!f) { svg.innerHTML = ""; return; }
+  svg.setAttribute("viewBox", "0 0 1000 1000");
+  let h = "";
+  const c = drawing.crop;
+  if (c && f.kind === "truss") h += `<rect x="${c.x * 1000}" y="${c.y * 1000}" width="${c.w * 1000}" height="${c.h * 1000}" fill="none" stroke="var(--accent)" stroke-width="3" vector-effect="non-scaling-stroke" stroke-dasharray="6 4"/>`;
+  if ($("#chkOverlay").checked && f.kind === "truss") {
+    for (const m of S.members) { const a = nodeByK(m.i), b = nodeByK(m.j); if (!a || !b || a.u == null || b.u == null) continue;
+      h += `<line x1="${a.u * 1000}" y1="${a.v * 1000}" x2="${b.u * 1000}" y2="${b.v * 1000}" stroke="${ROLE_COLOR[m.role]}" stroke-width="3" vector-effect="non-scaling-stroke" opacity=".8"/>`; }
+    for (const n of S.nodes) if (n.u != null) h += `<circle cx="${n.u * 1000}" cy="${n.v * 1000}" r="5" fill="var(--accent)" stroke="var(--panel)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
+  }
+  svg.innerHTML = h;
+}
+
+/* ============ straighten (perspective correction) ============ */
+// Four pins on the photo <-> four points in the truss plane (ft). A homography maps plane -> photo; the preview
+// and the straightened image are drawn by sampling the photo through it, at one uniform scale.
+const ST = { on: false, mode: "rect", W: NaN, H: NaN, pad: 2, plane: null, pins: null, src: null, timer: 0 };
+function solveLinear(A, b) { const n = b.length; const M = A.map((r, i) => [...r, b[i]]);
+  for (let c = 0; c < n; c++) { let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return null; [M[c], M[p]] = [M[p], M[c]];
+    for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+  return M.map((r, i) => r[n] / r[i]); }
+function homography(from, to) { // from[i]=[x,y] -> to[i]=[u,v]
+  const A = [], b = []; for (let i = 0; i < 4; i++) { const [x, y] = from[i], [u, v] = to[i];
+    A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v); }
+  const h = solveLinear(A, b); return h ? [...h, 1] : null; }
+const applyH = (h, x, y) => { const w = h[6] * x + h[7] * y + h[8]; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+function threeCollinear(P) { for (let a = 0; a < 4; a++) for (let b = a + 1; b < 4; b++) for (let c = b + 1; c < 4; c++) {
+  const ar = Math.abs((P[b][0] - P[a][0]) * (P[c][1] - P[a][1]) - (P[c][0] - P[a][0]) * (P[b][1] - P[a][1]));
+  const sc = Math.max(1e-6, Math.hypot(P[b][0] - P[a][0], P[b][1] - P[a][1]) * Math.hypot(P[c][0] - P[a][0], P[c][1] - P[a][1])); if (ar / sc < 0.02) return [a + 1, b + 1, c + 1]; } return null; }
+function stPlane() {
+  if (ST.mode === "rect") { const W = ST.W, H = ST.H; return [[0, 0], [W, 0], [W, H], [0, H]]; }
+  return ST.plane.map(p => [p.x, p.y]);
+}
+function modelSpan() { const xs = S.nodes.map(n => n.x), ys = S.nodes.map(n => n.y); return xs.length ? { L: Math.max(...xs) - Math.min(...xs), H: Math.max(...ys) - Math.min(...ys) } : { L: 20, H: 4 }; }
+async function stOpen() {
+  const f = drawing.files[drawing.active]; if (!f) return toast("Upload a photo of the truss first.");
+  if (f.kind === "key") return toast("Pick the truss image (not the key plan) to straighten.");
+  const bmp = await createImageBitmap(f.blob); const cv = document.createElement("canvas"); cv.width = bmp.width; cv.height = bmp.height;
+  const cx = cv.getContext("2d"); cx.drawImage(bmp, 0, 0); ST.src = { file: f, w: bmp.width, h: bmp.height, data: cx.getImageData(0, 0, bmp.width, bmp.height) };
+  const ms = modelSpan(); if (!isFinite(ST.W)) ST.W = r4(ms.L || 20); if (!isFinite(ST.H)) ST.H = r4(ms.H || 4);
+  if (!ST.plane) ST.plane = [{ name: "Left bearing", x: 0, y: 0 }, { name: "Right bearing", x: ST.W, y: 0 }, { name: "Peak", x: r4(ST.W / 2), y: ST.H }, { name: "A web joint", x: r4(ST.W / 3), y: r4(ST.H / 2) }];
+  const w = bmp.width, h = bmp.height; ST.pins = [[0.15 * w, 0.75 * h], [0.85 * w, 0.75 * h], [0.85 * w, 0.3 * h], [0.15 * w, 0.3 * h]];
+  ST.on = true; $("#btnStraighten").setAttribute("aria-pressed", "true"); $("#btnCrop").setAttribute("aria-pressed", "false");
+  $("#stPanel").hidden = false; $("#stW").value = fmtLen(ST.W); $("#stH").value = fmtLen(ST.H); $("#stPad").value = fmtLen(ST.pad); $("#stMode").value = ST.mode;
+  stRenderForm(); stRenderPins(); stPreview();
+}
+function stClose() { ST.on = false; $("#stPanel").hidden = true; $("#pins").setAttribute("hidden", ""); $("#btnStraighten").setAttribute("aria-pressed", "false"); }
+function stRenderForm() {
+  $$("[data-st]").forEach(el => el.hidden = el.dataset.st !== ST.mode);
+  $("#stPts").innerHTML = `<thead><tr><th>Pin</th><th>Point</th><th>x</th><th>y</th></tr></thead><tbody>` + ST.plane.map((p, i) =>
+    `<tr data-pp="${i}"><td><span class="cnum" style="background:var(--accent)">${i + 1}</span></td><td><input data-f="name" value="${esc(p.name)}" style="width:10em"></td>
+     <td><input class="num" data-f="x" value="${fmtLen(p.x)}"></td><td><input class="num" data-f="y" value="${fmtLen(p.y)}"></td></tr>`).join("") + "</tbody>";
+}
+function stRenderPins() {
+  const svg = $("#pins"); if (!ST.on || !ST.src || drawing.files[drawing.active] !== ST.src.file) { svg.setAttribute("hidden", ""); return; }
+  svg.removeAttribute("hidden"); const { w, h } = ST.src; svg.setAttribute("viewBox", `0 0 ${w} ${h}`); const r = Math.max(w, h) / 70;
+  const P = ST.pins; let s = `<path d="M${P.map(p => p.join(" ")).join(" L")} Z" fill="color-mix(in srgb, var(--accent) 12%, transparent)" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-dasharray="6 4"/>`;
+  P.forEach(([x, y], i) => { s += `<g class="pin" data-pin="${i}"><circle cx="${x}" cy="${y}" r="${r * 1.8}" fill="transparent"/><circle cx="${x}" cy="${y}" r="${r}" fill="var(--accent)" stroke="var(--panel)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <text x="${x}" y="${y + r * 0.38}" text-anchor="middle" font-size="${r * 1.1}" font-weight="700" fill="var(--accent-ink)" pointer-events="none">${i + 1}</text></g>`; });
+  svg.innerHTML = s;
+}
+function stBounds() {
+  const P = stPlane(); const xs = P.map(p => p[0]), ys = P.map(p => p[1]); const pad = Math.max(0, ST.pad || 0);
+  return { xmin: Math.min(...xs) - pad, xmax: Math.max(...xs) + pad, ymin: Math.min(...ys) - pad, ymax: Math.max(...ys) + pad };
+}
+function stWarp(maxSide) {
+  const P = stPlane(); if (P.some(p => !isFinite(p[0]) || !isFinite(p[1]))) return { err: "Enter every coordinate (e.g. 28'-0\")." };
+  const col = threeCollinear(P); if (col) return { err: `Pins ${col.join(", ")} are on one line in the truss plane. Pick points that form a four-sided shape.` };
+  const h = homography(P, ST.pins); if (!h) return { err: "Those pins can't be solved. Move them apart." };
+  const b = stBounds(); const wft = b.xmax - b.xmin, hft = b.ymax - b.ymin; if (!(wft > 0 && hft > 0)) return { err: "Width and height must be more than zero." };
+  const k = maxSide / Math.max(wft, hft); const W = Math.max(2, Math.round(wft * k)), Hh = Math.max(2, Math.round(hft * k));
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = Hh; const cx = cv.getContext("2d"); const out = cx.createImageData(W, Hh);
+  const { data: sd, width: sw, height: sh } = ST.src.data; const od = out.data;
+  for (let py = 0; py < Hh; py++) { const y = b.ymax - (py + 0.5) / k;
+    for (let px = 0; px < W; px++) { const x = b.xmin + (px + 0.5) / k; const [u, v] = applyH(h, x, y); const o = (py * W + px) * 4;
+      if (!(u >= 0 && v >= 0 && u < sw - 1 && v < sh - 1)) { od[o] = od[o + 1] = od[o + 2] = 255; od[o + 3] = 255; continue; }
+      const x0 = u | 0, y0 = v | 0, fx = u - x0, fy = v - y0; const i00 = (y0 * sw + x0) * 4, i10 = i00 + 4, i01 = i00 + sw * 4, i11 = i01 + 4;
+      for (let c = 0; c < 4; c++) od[o + c] = (sd[i00 + c] * (1 - fx) + sd[i10 + c] * fx) * (1 - fy) + (sd[i01 + c] * (1 - fx) + sd[i11 + c] * fx) * fy; } }
+  cx.putImageData(out, 0, 0); return { cv, scale: { xmin: b.xmin, ymax: b.ymax, wft, hft, pxPerFt: k } };
+}
+function stPreview() {
+  clearTimeout(ST.timer); ST.timer = setTimeout(() => {
+    const r = stWarp(700); const msg = $("#stMsg"); const pc = $("#stPrev");
+    if (r.err) { msg.textContent = r.err; msg.style.color = "var(--bad)"; $("#stUse").disabled = true; return; }
+    msg.style.color = ""; msg.textContent = `${fmtLen(r.scale.wft)} × ${fmtLen(r.scale.hft)} at one scale. Members should look straight and the chords level.`; $("#stUse").disabled = false;
+    pc.width = r.cv.width; pc.height = r.cv.height; const g = pc.getContext("2d"); g.drawImage(r.cv, 0, 0);
+    // pin targets on the preview
+    const sc = r.scale; g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#b4581f";
+    stPlane().forEach(([x, y], i) => { const px = (x - sc.xmin) * sc.pxPerFt, py = (sc.ymax - y) * sc.pxPerFt; g.beginPath(); g.arc(px, py, 6, 0, 7); g.fill(); });
+  }, 60);
+}
+async function stUse() {
+  const r = stWarp(2400); if (r.err) return toast(r.err);
+  const blob = await new Promise(res => r.cv.toBlob(res, "image/png")); const f = ST.src.file;
+  const name = f.name.replace(/\.(png|jpe?g|webp|gif)$/i, "") + " straightened.png";
+  f.kind = "orig"; drawing.files.push({ name, blob, url: URL.createObjectURL(blob), kind: "truss", scale: r.scale });
+  drawing.active = drawing.files.length - 1; drawing.crop = null; stClose(); renderDrawing();
+  setAI("", `Straightened to a true elevation (${fmtLen(r.scale.wft)} × ${fmtLen(r.scale.hft)}). Claude will read this version and use its scale; the original photo is kept but not sent.`);
+}
+function wireStraighten() {
+  $("#btnStraighten").onclick = () => ST.on ? stClose() : stOpen();
+  $("#stClose").onclick = stClose;
+  $("#stMode").onchange = e => { ST.mode = e.target.value; stRenderForm(); stPreview(); };
+  const lenIn = (sel, set) => $(sel).addEventListener("change", e => { const v = parseLen(e.target.value); if (!isFinite(v)) { toast("Couldn't read that length. Try 28'-0\" or 28."); return; } set(v); e.target.value = fmtLen(v); stPreview(); });
+  lenIn("#stW", v => ST.W = v); lenIn("#stH", v => ST.H = v); lenIn("#stPad", v => ST.pad = Math.max(0, v));
+  $("#stPts").addEventListener("change", e => { const tr = e.target.closest("[data-pp]"); if (!tr) return; const p = ST.plane[+tr.dataset.pp]; const f = e.target.dataset.f;
+    if (f === "name") { p.name = e.target.value; return; } const v = parseLen(e.target.value); if (!isFinite(v)) { toast("Couldn't read that length."); return; } p[f] = v; e.target.value = fmtLen(v); stPreview(); });
+  $("#stUse").onclick = stUse;
+  const svg = $("#pins"); let dragI = -1;
+  const toPx = e => { const r = svg.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * ST.src.w, Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) * ST.src.h]; };
+  svg.addEventListener("pointerdown", e => { const g = e.target.closest("[data-pin]"); if (!g) return; dragI = +g.dataset.pin; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+  svg.addEventListener("pointermove", e => { if (dragI < 0) return; ST.pins[dragI] = toPx(e); stRenderPins(); stPreview(); });
+  svg.addEventListener("pointerup", () => { dragI = -1; });
+}
+
+/* ============ model view ============ */
+let mode = "select", selected = null, pendingNode = null, view = null, drag = null;
+const VW = 1000;
+function computeView() {
+  const xs = S.nodes.map(n => n.x), ys = S.nodes.map(n => n.y);
+  let minx = Math.min(0, ...xs), maxx = Math.max(10, ...xs), miny = Math.min(0, ...ys), maxy = Math.max(3, ...ys);
+  const w = maxx - minx, hgt = maxy - miny; const pad = 60; const s = (VW - 2 * pad) / w;
+  const VH = Math.max(260, Math.min(560, hgt * s + 2 * pad + 30));
+  const s2 = Math.min(s, (VH - 2 * pad - 30) / Math.max(hgt, 1e-6));
+  const ox = pad + ((VW - 2 * pad) - w * s2) / 2, oy = VH - pad - 10;
+  return { s: s2, minx, miny, ox, oy, VH, X: x => ox + (x - minx) * s2, Y: y => oy - (y - miny) * s2,
+    inv: (px, py) => ({ x: minx + (px - ox) / s2, y: miny + (oy - py) / s2 }) };
+}
+function renderModel(keepView) {
+  if (!keepView || !view) view = computeView(); const v = view; const svg = $("#model"); svg.setAttribute("viewBox", `0 0 ${VW} ${v.VH}`);
+  const showL = $("#chkLabels").checked, showS = $("#chkSizes").checked;
+  let h = "";
+  // faint 1 ft grid
+  const gx0 = Math.ceil(v.minx), gx1 = Math.floor(v.inv(VW, 0).x), gy1 = Math.floor(v.inv(0, 0).y);
+  const step = v.s > 25 ? 1 : v.s > 8 ? 2 : 5;
+  for (let x = Math.ceil(gx0 / step) * step; x <= gx1; x += step) h += `<line x1="${v.X(x)}" y1="0" x2="${v.X(x)}" y2="${v.VH}" stroke="var(--grid)" stroke-width="1"/>`;
+  for (let y = Math.ceil(Math.min(0, v.miny) / step) * step; y <= gy1; y += step) h += `<line x1="0" y1="${v.Y(y)}" x2="${VW}" y2="${v.Y(y)}" stroke="var(--grid)" stroke-width="1"/>`;
+  // span dimension
+  if (S.nodes.length > 1) {
+    const xs = S.nodes.map(n => n.x); const a = Math.min(...xs), b = Math.max(...xs); const yy = v.oy + 34;
+    h += `<line x1="${v.X(a)}" y1="${yy}" x2="${v.X(b)}" y2="${yy}" stroke="var(--muted)" stroke-width="1"/>
+      <line x1="${v.X(a)}" y1="${yy - 5}" x2="${v.X(a)}" y2="${yy + 5}" stroke="var(--muted)"/><line x1="${v.X(b)}" y1="${yy - 5}" x2="${v.X(b)}" y2="${yy + 5}" stroke="var(--muted)"/>
+      <text x="${(v.X(a) + v.X(b)) / 2}" y="${yy - 6}" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${fmtLen(b - a)}</text>`;
+  }
+  // members
+  S.members.forEach((m, idx) => {
+    const a = nodeByK(m.i), b = nodeByK(m.j); if (!a || !b) return;
+    const x1 = v.X(a.x), y1 = v.Y(a.y), x2 = v.X(b.x), y2 = v.Y(b.y); const sel = selected?.k === m.k;
+    const wdt = m.role === "top" || m.role === "bottom" ? 4 : 2.6;
+    if (sel) h += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--sel)" stroke-width="${wdt + 6}" stroke-linecap="round" opacity=".55"/>`;
+    h += `<line data-m="${m.k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ROLE_COLOR[m.role]}" stroke-width="${wdt}" stroke-linecap="round" ${m.conf === "low" ? 'stroke-dasharray="7 5"' : ""}/>`;
+    h += `<line data-m="${m.k}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="14" style="cursor:pointer"/>`;
+    const len = Math.hypot(x2 - x1, y2 - y1) || 1; const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+    if (effEnd(m, "i") === "pin") h += `<circle cx="${x1 + ux * 13}" cy="${y1 + uy * 13}" r="4" fill="var(--panel)" stroke="${ROLE_COLOR[m.role]}" stroke-width="1.8" pointer-events="none"/>`;
+    if (effEnd(m, "j") === "pin") h += `<circle cx="${x2 - ux * 13}" cy="${y2 - uy * 13}" r="4" fill="var(--panel)" stroke="${ROLE_COLOR[m.role]}" stroke-width="1.8" pointer-events="none"/>`;
+    if (showL || showS) {
+      const mx = (x1 + x2) / 2 - uy * 11, my = (y1 + y2) / 2 + ux * 11; const t = [showL ? "M" + (idx + 1) : "", showS ? effSize(m) : ""].filter(Boolean).join(" ");
+      h += `<text x="${mx}" y="${my + 4}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace" pointer-events="none" paint-order="stroke" stroke="var(--panel)" stroke-width="3">${esc(t)}</text>`;
+    }
+  });
+  // supports, drawn from each node's restraints
+  for (const n of S.nodes) { const c = effBC(n.k); const rx = isRestr(c[0]), ry = isRestr(c[1]); if (!rx && !ry) continue;
+    const x = v.X(n.x), y = v.Y(n.y) + 6; const all = c.every(isRestr) || (rx && ry && isRestr(c[5]));
+    if (all) h += `<rect x="${x - 14}" y="${y}" width="28" height="7" fill="var(--muted)"/>`;
+    else if (ry) { h += `<path d="M${x} ${y} l-11 16 h22 z" fill="none" stroke="var(--ink)" stroke-width="1.6"/>`;
+      if (!rx) h += `<circle cx="${x - 6}" cy="${y + 21}" r="3.5" fill="none" stroke="var(--ink)" stroke-width="1.4"/><circle cx="${x + 6}" cy="${y + 21}" r="3.5" fill="none" stroke="var(--ink)" stroke-width="1.4"/>`;
+      else h += `<line x1="${x - 14}" y1="${y + 18}" x2="${x + 14}" y2="${y + 18}" stroke="var(--ink)" stroke-width="1.6"/>`; }
+    else h += `<path d="M${x - 6} ${y - 6} l-16 -9 v18 z" fill="none" stroke="var(--ink)" stroke-width="1.6"/>`;
+    if (n.bc) h += `<text x="${x + 16}" y="${y + 16}" font-size="10" fill="var(--accent)" font-family="IBM Plex Mono, monospace">custom</text>`; }
+  // nodes
+  S.nodes.forEach((n, idx) => { const x = v.X(n.x), y = v.Y(n.y); const sel = selected?.k === n.k || pendingNode === n.k;
+    h += `<circle data-n="${n.k}" cx="${x}" cy="${y}" r="${sel ? 7 : 5}" fill="${sel ? "var(--sel)" : "var(--ink)"}" stroke="var(--panel)" stroke-width="2" style="cursor:pointer"/>`;
+    if (showL) h += `<text x="${x + 8}" y="${y - 8}" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono, monospace" pointer-events="none" paint-order="stroke" stroke="var(--panel)" stroke-width="3">N${idx + 1}</text>`; });
+  if (!S.nodes.length) h += `<text x="${VW / 2}" y="${v.VH / 2}" text-anchor="middle" font-size="15" fill="var(--muted)">No model yet. Read a drawing, start from a template, or use Add node.</text>`;
+  // check markers: ring around the problem, numbered to match the Checks list
+  const spots = new Map();
+  for (const c of runChecks()) { if (!c.n) continue;
+    for (const k of c.refs) { let x, y;
+      if (k[0] === "n") { const nd = nodeByK(k); if (!nd) continue; x = v.X(nd.x); y = v.Y(nd.y); }
+      else { const mm = S.members.find(q => q.k === k); const a = mm && nodeByK(mm.i), b = mm && nodeByK(mm.j); if (!a || !b) continue; x = (v.X(a.x) + v.X(b.x)) / 2; y = (v.Y(a.y) + v.Y(b.y)) / 2; }
+      const key = Math.round(x) + "," + Math.round(y); if (!spots.has(key)) spots.set(key, { x, y, list: [] }); spots.get(key).list.push(c); } }
+  for (const sp of spots.values()) {
+    const worst = sp.list.some(c => c.lvl === "bad") ? "var(--bad)" : "var(--warn)";
+    h += `<circle cx="${sp.x}" cy="${sp.y}" r="15" fill="none" stroke="${worst}" stroke-width="2.5" pointer-events="none"/>`;
+    sp.list.forEach((c, i) => { const bx = sp.x + 13 + i * 17, by = sp.y - 13; const col = c.lvl === "bad" ? "var(--bad)" : "var(--warn)";
+      h += `<g data-chk="${c.n}" style="cursor:pointer"><title>${esc(c.msg.replace(/<[^>]+>/g, ""))}</title><circle cx="${bx}" cy="${by}" r="8.5" fill="${col}" stroke="var(--panel)" stroke-width="1.5"/>
+        <text x="${bx}" y="${by + 3.8}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--panel)" font-family="IBM Plex Mono, monospace" pointer-events="none">${c.n}</text></g>`; });
+  }
+  svg.innerHTML = h;
+  const hints = { select: "Drag nodes to move · Delete key removes", node: "Click to place a node (snaps to 1\")", member: pendingNode ? "Now click the end node" : "Click the start node", delete: "Click a node or member to delete" };
+  $("#modeHint").textContent = hints[mode];
+}
+function svgPt(evt) { const svg = $("#model"); const p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+const snapIn = v => Math.round(v * 12) / 12;
+
+/* ============ tables ============ */
+function endSel(name, val) { return `<select data-f="${name}"><option value="def"${val === "def" ? " selected" : ""}>Default</option><option value="cont"${val === "cont" ? " selected" : ""}>Continuous</option><option value="pin"${val === "pin" ? " selected" : ""}>Pinned</option></select>`; }
+function nodeOpts(sel) { return S.nodes.map((n, i) => `<option value="${n.k}"${n.k === sel ? " selected" : ""}>N${i + 1}</option>`).join(""); }
+function renderTables() {
+  $("#tMembers").innerHTML = `<thead><tr><th>Member</th><th>I node</th><th>J node</th><th>Role</th><th>Length</th><th>Size</th><th>I end</th><th>J end</th><th>RISA I / J</th><th>Status</th><th></th></tr></thead><tbody>` +
+    S.members.map((m, i) => `<tr data-row="${m.k}" class="${selected?.k === m.k ? "sel" : ""} ${m.conf === "low" ? "low" : ""}">
+      <td class="mono"><span class="swatch" style="background:${ROLE_COLOR[m.role]}"></span>M${i + 1}</td>
+      <td><select data-f="i">${nodeOpts(m.i)}</select></td><td><select data-f="j">${nodeOpts(m.j)}</select></td>
+      <td><select data-f="role">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}"${k === m.role ? " selected" : ""}>${v}</option>`).join("")}</select></td>
+      <td class="num">${fmtLen(memLen(m))}</td>
+      <td><input class="short mono" data-f="size" value="${esc(m.size)}" placeholder="${esc(S.defaults[m.role]?.size || "")}"></td>
+      <td>${endSel("endI", m.endI)}</td><td>${endSel("endJ", m.endJ)}</td>
+      <td class="mono muted">${effEnd(m, "i") === "pin" ? "BenPIN" : "—"} / ${effEnd(m, "j") === "pin" ? "BenPIN" : "—"}</td>
+      <td>${m.fixed ? `<button class="pill fix" data-unfix title="Click to release back to defaults">Fixed</button>` : m.conf ? `<span class="pill">${esc(m.conf)}</span>` : `<span class="pill">default</span>`}</td>
+      <td><button data-del aria-label="Delete M${i + 1}">✕</button></td></tr>`).join("") + "</tbody>";
+  const rsel = (d, v) => `<select class="dof ${v ? "on" : ""}" data-dof="${d}" aria-label="${DOF[d]} restraint"><option value=""${v === "" ? " selected" : ""}>—</option><option value="R"${v === "R" ? " selected" : ""}>R</option><option value="F"${v === "F" ? " selected" : ""}>F</option></select>`;
+  $("#tNodes").innerHTML = `<thead><tr><th>Node</th><th>X</th><th>Y</th><th>X (ft-in)</th><th>Y (ft-in)</th><th>Support</th>${DOF.map(d => `<th class="dofh">${d}</th>`).join("")}<th>Restraints</th><th></th></tr></thead><tbody>` +
+    S.nodes.map((n, i) => { const s = S.supports.find(q => q.node === n.k); const c = effBC(n.k); return `<tr data-row="${n.k}" class="${selected?.k === n.k ? "sel" : ""}">
+      <td class="mono">N${i + 1}</td><td><input class="num" data-f="x" value="${n.x}"></td><td><input class="num" data-f="y" value="${n.y}"></td>
+      <td class="num muted">${fmtLen(n.x)}</td><td class="num muted">${fmtLen(n.y)}</td>
+      <td><select data-f="support"><option value="">None</option>${["pin", "roller", "fixed"].map(t => `<option value="${t}"${s?.type === t ? " selected" : ""}>${t[0].toUpperCase() + t.slice(1)}</option>`).join("")}</select></td>
+      ${c.map((v, d) => `<td>${rsel(d, v)}</td>`).join("")}
+      <td>${n.bc ? `<button class="pill fix" data-autobc title="Go back to the restraints the support type gives">Custom</button>` : `<span class="pill">auto</span>`}</td>
+      <td><button data-del aria-label="Delete N${i + 1}">✕</button></td></tr>`; }).join("") + "</tbody>";
+  $("#tSupports").innerHTML = `<thead><tr><th>Node</th><th>Type</th><th>Restraints (X Y Z MX MY MZ)</th><th>Note</th><th></th></tr></thead><tbody>` +
+    S.supports.map((s, i) => `<tr data-sup="${i}"><td class="mono">${nodeLabel(s.node)}</td>
+      <td><select data-f="type"><option value="pin"${s.type === "pin" ? " selected" : ""}>Pin</option><option value="roller"${s.type === "roller" ? " selected" : ""}>Roller</option><option value="fixed"${s.type === "fixed" ? " selected" : ""}>Fixed</option></select></td>
+      <td class="mono muted">${effBC(s.node).map((v, d) => v ? DOF[d] + "=" + v : "").filter(Boolean).join("  ")}</td>
+      <td><input data-f="note" value="${esc(s.note || "")}" style="width:14em"></td><td><button data-del aria-label="Remove support">✕</button></td></tr>`).join("") + "</tbody>";
+  $("#supNode").innerHTML = nodeOpts(null);
+  $("#tDefaults").innerHTML = `<thead><tr><th>Role</th><th>Default size</th><th>Default end condition</th><th>Members</th></tr></thead><tbody>` +
+    Object.entries(ROLES).map(([k, v]) => `<tr data-def="${k}"><td><span class="swatch" style="background:${ROLE_COLOR[k]}"></span>${v}</td>
+      <td><input class="short mono" data-f="size" value="${esc(S.defaults[k].size)}"></td>
+      <td><select data-f="end"><option value="cont"${S.defaults[k].end === "cont" ? " selected" : ""}>Continuous</option><option value="pin"${S.defaults[k].end === "pin" ? " selected" : ""}>Pinned (BenPIN)</option></select></td>
+      <td class="num muted">${S.members.filter(m => m.role === k).length}</td></tr>`).join("") + "</tbody>";
+}
+function renderSettings() {
+  const m = S.meta;
+  $("#sMark").value = m.mark; $("#sSpacing").value = m.spacingIn || ""; $("#sSpacingSrc").value = m.spacingSrc; $("#sPlies").value = m.plies;
+  $("#sGrade").value = m.grade; $("#sSteel").innerHTML = `<option value="">AISC typical for shape</option>` + hrMaterials().map(h => `<option${h.label === m.steelGrade ? " selected" : ""}>${esc(h.label)}</option>`).join(""); $("#sMaterial").innerHTML = `<option value="">Auto from grade (${esc(woodMat(null).label)})</option>` + woodMaterials().map(w => `<option${w.label === m.material ? " selected" : ""}>${esc(w.label)}</option>`).join(""); $("#sCount").value = m.count; $("#sKeyNotes").value = m.keyNotes; $("#sPlanar").checked = m.planar;
+  $("#sUTC").value = m.unit.tc; $("#sUBC").value = m.unit.bc;
+  $("#sUp").value = m.up; $("#sHeaders").checked = m.headers;
+}
+function renderSummary() {
+  const xs = S.nodes.map(n => n.x), ys = S.nodes.map(n => n.y);
+  const span = S.nodes.length ? Math.max(...xs) - Math.min(...xs) : 0, ht = S.nodes.length ? Math.max(...ys) - Math.min(...ys) : 0;
+  const sizes = [...new Set(S.members.map(effSize))].join(", ") || "—";
+  $("#summary").innerHTML = [["Span", fmtLen(span) || "—"], ["Height", fmtLen(ht) || "—"], ["Spacing", S.meta.spacingIn ? S.meta.spacingIn + '" o.c.' : "—"],
+    ["Trusses", S.meta.count], ["Plies", S.meta.plies], ["Sizes", sizes]].map(([a, b]) => `<div><span class="lbl">${a}</span><b>${esc(b)}</b></div>`).join("");
+  $("#markTag").textContent = "Mark " + (S.meta.mark || "—");
+  $("#exampleTag").hidden = !S.example;
+}
+function renderChecks() {
+  const c = runChecks(); const bad = c.filter(x => x.lvl === "bad").length, warn = c.filter(x => x.lvl === "warn").length;
+  $("#checksList").innerHTML = c.map(x => `<li class="${x.lvl}" id="chk-${x.n || 0}">${x.n ? `<span class="cnum ${x.lvl}">${x.n}</span>` : ""}<span>${x.msg}</span>${x.refs.length ? `<button class="locate" data-locate="${x.n}">Show on model</button>` : `<span class="muted" style="font-size:12px">applies to the whole model</span>`}</li>`).join("");
+  const el = $("#cChecks"); el.textContent = bad || warn || "✓"; el.className = "count " + (bad ? "bad" : warn ? "warn" : "");
+  return c;
+}
+function renderExport() {
+  $("#tplStatus").textContent = "Template: " + tplName + " · RISA " + tplVersion(); $("#btnTplReset").hidden = tplText === BUILTIN_TPL;
+  try { const r = buildR3d(); const fmt = v => (v * 1000).toFixed(0) + " plf";
+    $("#r3dSummary").innerHTML = [
+      `${r.nodes.length} nodes and ${r.mems.length} members${S.meta.count > 1 ? ` (${S.meta.count} trusses at ${S.meta.spacingIn}" o.c. along Z)` : ""}, Y vertical, feet.`,
+      r.hss.length ? `Steel HSS from the AISC shape database: ${r.hss.map(h => `${esc(h.name)} (${esc(steelMat(h.name).label)})`).join(", ")}. Design list Tube, no section sets. ${S.meta.steelGrade ? "Grade set by you." : "Grade = AISC typical for the shape."}` : "",
+      r.sets.length ? `Wood section sets: ${r.sets.map(x => `${esc(x.shape)} (${esc(x.mat.label)})`).join(", ")}.` : "",
+      `End releases: ${r.mems.filter(m => m.relI || m.relJ).length} members with BenPIN ends; chords continuous unless you changed them.`,
+      `Boundary conditions on ${r.bcCount} nodes, written from each node's X, Y, Z, MX, MY, MZ restraints (R = reaction, F = fixed).`,
+      `Load cases: ${r.cases.map(c => `${c.label} (${c.v} k/ft on ${c.loads.length} members)`).join("; ")}. No self-weight. One load combination per case; the template's combinations are replaced.`,
+      r.missing.length ? `<b style="color:var(--bad)">Template is missing ${r.missing.join(", ")}.</b>` : ""
+    ].filter(Boolean).map(x => `<li>${x}</li>`).join("");
+  } catch (e) { $("#r3dSummary").innerHTML = `<li>Can't build the .r3d yet: ${esc(e.message)}</li>`; }
+  const { T } = tables(); const order = ["nodes", "members", "releases", "boundary", "tc", "bc"];
+  $("#exportCards").innerHTML = order.map(k => { const t = T[k]; const prev = [t.head, ...t.rows.slice(0, 6)].map(r => r.join("  ")).join("\n") + (t.rows.length > 6 ? `\n… ${t.rows.length - 6} more` : "");
+    return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3 style="font-size:13px">${t.title}</h3><div class="muted" style="font-size:12px">${t.where} · ${t.rows.length} rows</div></div>
+      <button data-copy="${k}" ${t.rows.length ? "" : "disabled"}>Copy</button></div><pre>${esc(t.rows.length ? prev : "Nothing to paste.")}</pre></div>`; }).join("");
+}
+function renderAll() {
+  renderSummary(); renderModel(); renderTables(); renderSettings(); renderChecks(); renderExport(); renderOverlay();
+  $("#cMembers").textContent = S.members.length; $("#cNodes").textContent = S.nodes.length; $("#cSupports").textContent = S.supports.length;
+  $("#aiNotesWrap").hidden = !S.notes.length; $("#aiNotes").innerHTML = S.notes.map(n => `<li>${esc(n)}</li>`).join("");
+}
+
+/* ============ events ============ */
+let toastT; function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+function selectItem(k, scroll) {
+  selected = k ? { k } : null; renderModel(); renderTables();
+  if (k && scroll) { const tab = k[0] === "m" ? "members" : "nodes"; showTab(tab); document.querySelector(`[data-pane="${tab}"] tr[data-row="${k}"]`)?.scrollIntoView({ block: "nearest" }); }
+}
+function deleteNode(k) { snap(); S.nodes = S.nodes.filter(n => n.k !== k); S.members = S.members.filter(m => m.i !== k && m.j !== k); S.supports = S.supports.filter(s => s.node !== k); selected = null; renderAll(); }
+function deleteMember(k) { snap(); S.members = S.members.filter(m => m.k !== k); selected = null; renderAll(); }
+function showTab(t) { $$("#tabs [role=tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t)); $$("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== t); }
+function setMode(m) { mode = m; pendingNode = null; $$("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m)); renderModel(); }
+
+function wire() {
+  $$("[data-mode]").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+  $$("#tabs [role=tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+  ["#chkLabels", "#chkSizes"].forEach(s => $(s).onchange = renderModel); $("#chkOverlay").onchange = renderOverlay;
+  $("#btnUndo").onclick = undo;
+  document.addEventListener("keydown", e => {
+    if (e.target.closest("input,select,textarea")) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+    if ((e.key === "Delete" || e.key === "Backspace") && selected) { e.preventDefault(); selected.k[0] === "n" ? deleteNode(selected.k) : deleteMember(selected.k); return; }
+    const km = { v: "select", n: "node", m: "member", d: "delete", Escape: "select" }[e.key]; if (km) setMode(km);
+  });
+  // model canvas
+  const svg = $("#model");
+  svg.addEventListener("pointerdown", e => {
+    const chk = e.target.closest?.("[data-chk]"); if (chk) { showTab("checks"); const li = document.getElementById("chk-" + chk.dataset.chk); if (li) { li.scrollIntoView({ behavior: "smooth", block: "center" }); li.classList.add("flash"); setTimeout(() => li.classList.remove("flash"), 1600); } return; }
+    const nk = e.target.dataset?.n, mk = e.target.dataset?.m; const p = svgPt(e);
+    if (mode === "delete") { if (nk) deleteNode(nk); else if (mk) deleteMember(mk); return; }
+    if (mode === "member") { if (!nk) return; if (!pendingNode) { pendingNode = nk; renderModel(); return; }
+      if (pendingNode !== nk) { snap(); const a = nodeByK(pendingNode), b = nodeByK(nk); const m = addMember(pendingNode, nk, guessRole(a, b)); pendingNode = null; S.example = false; renderAll(); selectItem(m.k); } return; }
+    if (mode === "node") { if (nk) return; snap(); const q = view.inv(p.x, p.y); const n = addNode(snapIn(q.x), snapIn(q.y)); S.example = false; renderAll(); selectItem(n.k); return; }
+    if (nk) { selectItem(nk, true); drag = { k: nk, moved: false, start: JSON.stringify(S) }; svg.setPointerCapture(e.pointerId); }
+    else if (mk) selectItem(mk, true); else selectItem(null);
+  });
+  svg.addEventListener("pointermove", e => { if (!drag) return; const p = svgPt(e); const q = view.inv(p.x, p.y); const n = nodeByK(drag.k); if (!n) return;
+    const nx = snapIn(q.x), ny = snapIn(q.y); if (nx !== n.x || ny !== n.y) { if (!drag.moved) { history.push(drag.start); drag.moved = true; } n.x = nx; n.y = ny; delete n.u; delete n.v;
+      renderModel(true); } });
+  svg.addEventListener("pointerup", () => { if (drag?.moved) { S.example = false; renderAll(); } drag = null; });
+  // tables
+  $("#tMembers").addEventListener("change", e => { const tr = e.target.closest("tr[data-row]"); if (!tr) return; const m = S.members.find(x => x.k === tr.dataset.row); const f = e.target.dataset.f; if (!m || !f) return;
+    snap(); m[f] = e.target.value; if (["size", "endI", "endJ"].includes(f)) { m.fixed = true; m.conf = ""; } S.example = false; renderAll(); });
+  $("#tMembers").addEventListener("click", e => { const tr = e.target.closest("tr[data-row]"); if (!tr) return;
+    if (e.target.closest("[data-del]")) return deleteMember(tr.dataset.row);
+    if (e.target.closest("[data-unfix]")) { snap(); const m = S.members.find(x => x.k === tr.dataset.row); Object.assign(m, { fixed: false, size: "", endI: "def", endJ: "def" }); renderAll(); return; }
+    if (!e.target.closest("input,select,button")) selectItem(tr.dataset.row); });
+  $("#tNodes").addEventListener("change", e => { const tr = e.target.closest("tr[data-row]"); const n = S.nodes.find(x => x.k === tr?.dataset.row); if (!n) return;
+    if (e.target.dataset.dof != null) { snap(); const c = effBC(n.k); c[+e.target.dataset.dof] = e.target.value; n.bc = c; S.example = false; renderAll(); return; }
+    if (e.target.dataset.f === "support") { snap(); S.supports = S.supports.filter(q => q.node !== n.k); if (e.target.value) S.supports.push({ node: n.k, type: e.target.value, note: "" }); delete n.bc; renderAll(); return; }
+    const f = e.target.dataset.f; if (!f) return;
+    const v = parseLen(e.target.value); if (!isFinite(v)) { toast("Couldn't read that length. Try 12.5, 12'-6\" or 150\"."); e.target.value = n[f]; return; }
+    snap(); n[f] = r4(v); delete n.u; delete n.v; S.example = false; renderAll(); });
+  $("#tNodes").addEventListener("click", e => { const tr = e.target.closest("tr[data-row]"); if (!tr) return; if (e.target.closest("[data-del]")) return deleteNode(tr.dataset.row);
+    if (e.target.closest("[data-autobc]")) { snap(); delete nodeByK(tr.dataset.row).bc; renderAll(); return; }
+    if (!e.target.closest("input,select,button")) selectItem(tr.dataset.row); });
+  $("#tSupports").addEventListener("change", e => { const tr = e.target.closest("tr[data-sup]"); const s = S.supports[+tr?.dataset.sup]; if (!s) return; snap(); s[e.target.dataset.f] = e.target.value; if (e.target.dataset.f === "type") { const n = nodeByK(s.node); if (n) delete n.bc; } renderAll(); });
+  $("#tSupports").addEventListener("click", e => { const tr = e.target.closest("tr[data-sup]"); if (tr && e.target.closest("[data-del]")) { snap(); const [sp] = S.supports.splice(+tr.dataset.sup, 1); const n = nodeByK(sp?.node); if (n) delete n.bc; renderAll(); } });
+  $("#supAdd").onclick = () => { const k = $("#supNode").value; if (!k) return; snap(); S.supports = S.supports.filter(s => s.node !== k); S.supports.push({ node: k, type: $("#supType").value, note: "" }); const nn = nodeByK(k); if (nn) delete nn.bc; renderAll(); };
+  $("#tDefaults").addEventListener("change", e => { const tr = e.target.closest("tr[data-def]"); if (!tr) return; snap(); S.defaults[tr.dataset.def][e.target.dataset.f] = e.target.value; renderAll(); });
+  $("#bulkApply").onclick = () => { const role = $("#bulkRole").value, size = $("#bulkSize").value.trim(); if (!size) return toast("Type a size first, like HSS4X4X4 or 2x6.");
+    snap(); let n = 0, skipped = 0; for (const m of S.members) { if (role !== "all" && m.role !== role) continue; if (m.fixed) { skipped++; continue; } m.size = size; n++; }
+    renderAll(); toast(`Set ${n} members to ${size}${skipped ? `, skipped ${skipped} fixed` : ""}.`); };
+  // settings
+  const bindMeta = (sel, fn) => $(sel).addEventListener("change", e => { snap(); fn(e.target); renderAll(); });
+  bindMeta("#sMark", t => S.meta.mark = t.value.trim()); bindMeta("#sSpacing", t => S.meta.spacingIn = parseFloat(t.value) || 0);
+  bindMeta("#sSpacingSrc", t => S.meta.spacingSrc = t.value.trim()); bindMeta("#sPlies", t => S.meta.plies = Math.max(1, parseInt(t.value) || 1));
+  bindMeta("#sGrade", t => S.meta.grade = t.value.trim()); bindMeta("#sMaterial", t => S.meta.material = t.value); bindMeta("#sSteel", t => S.meta.steelGrade = t.value);
+  bindMeta("#sCount", t => S.meta.count = Math.min(200, Math.max(1, parseInt(t.value) || 1))); bindMeta("#sKeyNotes", t => S.meta.keyNotes = t.value.trim());
+  bindMeta("#sPlanar", t => S.meta.planar = t.checked);
+  bindMeta("#sUTC", t => S.meta.unit.tc = Math.abs(parseFloat(t.value)) || 0); bindMeta("#sUBC", t => S.meta.unit.bc = Math.abs(parseFloat(t.value)) || 0);
+  bindMeta("#sUp", t => S.meta.up = t.value); bindMeta("#sHeaders", t => S.meta.headers = t.checked);
+  // templates
+  $("#btnTpl").onclick = () => { $("#tplPanel").hidden = !$("#tplPanel").hidden; }; $("#tplClose").onclick = () => $("#tplPanel").hidden = true;
+  $("#tplGo").onclick = () => { const L = parseLen($("#tplSpan").value), p = parsePitch($("#tplPitch").value), h = parseLen($("#tplHeel").value || "0"), d = parseLen($("#tplDepth").value), n = parseInt($("#tplPanels").value) || 6;
+    if (!(L > 0)) return toast("Enter a span, like 28'-0\"."); if ($("#tplType").value !== "flat" && !(p >= 0)) return toast("Enter a pitch like 4/12.");
+    if ($("#tplType").value === "flat" && !(d > 0)) return toast("Enter a depth for the flat truss.");
+    snap(); generate($("#tplType").value, L, p || 0, h || 0, d || 2, n); sortNodes(); S.example = false; selected = null; renderAll(); $("#tplPanel").hidden = true; toast("Template model created."); };
+  // drawing
+  const drop = $("#drop"); drop.onclick = () => $("#fileImg").click(); drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#fileImg").click(); } };
+  $("#fileImg").onchange = e => { addFiles([...e.target.files]); e.target.value = ""; };
+  ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  document.addEventListener("drop", e => { if (e.dataTransfer?.files?.length) addFiles([...e.dataTransfer.files]); });
+  $("#thumbs").addEventListener("click", e => { const s = e.target.closest("[data-show]"), r = e.target.closest("[data-rm]");
+    if (s) { drawing.active = +s.dataset.show; renderDrawing(); }
+    if (r) { const i = +r.dataset.rm; URL.revokeObjectURL(drawing.files[i].url); if (drawing.files[i].kind === "truss") drawing.crop = null; drawing.files.splice(i, 1); drawing.active = 0; renderDrawing(); } });
+  $("#thumbs").addEventListener("change", e => { const s = e.target.closest("[data-kind]"); if (!s) return; const i = +s.dataset.kind; const want = s.value;
+    if (want !== "orig") drawing.files.forEach((f, j) => { if (j !== i && f.kind === want) f.kind = drawing.files[i].kind === "orig" ? "orig" : (want === "truss" ? "key" : "truss"); }); drawing.files[i].kind = want; drawing.crop = null; renderDrawing(); });
+  $("#pdfPage").onchange = async e => { const t = drawing.files.find(f => f.kind === "truss"); if (!t || !pdfDoc) return; const b = await renderPdfPage(+e.target.value);
+    URL.revokeObjectURL(t.url); t.blob = b; t.url = URL.createObjectURL(b); t.name = pdfFile.replace(/\.pdf$/i, "") + ` p${e.target.value}.png`; drawing.crop = null; renderDrawing(); };
+  $("#btnCrop").onclick = () => { if (ST.on) stClose(); const on = $("#btnCrop").getAttribute("aria-pressed") !== "true"; $("#btnCrop").setAttribute("aria-pressed", on); if (on) toast("Drag a box around the truss elevation."); };
+  const box = $("#imgbox"); let c0 = null;
+  const rel = e => { const r = box.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }; };
+  box.addEventListener("pointerdown", e => { if ($("#btnCrop").getAttribute("aria-pressed") !== "true" || drawing.files[drawing.active]?.kind !== "truss") return; c0 = rel(e); box.setPointerCapture(e.pointerId); });
+  box.addEventListener("pointermove", e => { if (!c0) return; const p = rel(e); drawing.crop = { x: Math.min(c0.x, p.x), y: Math.min(c0.y, p.y), w: Math.abs(p.x - c0.x), h: Math.abs(p.y - c0.y) }; renderOverlay(); });
+  box.addEventListener("pointerup", () => { if (!c0) return; c0 = null; if (drawing.crop && drawing.crop.w < 0.02) drawing.crop = null; $("#btnCrop").setAttribute("aria-pressed", "false"); renderOverlay(); if (drawing.crop) toast("Crop set. Claude gets the full sheet plus this detail."); });
+  $("#btnRead").onclick = readDrawing; $("#btnStop").onclick = () => aiCtl?.abort();
+  // project files
+  $("#btnSave").onclick = async () => { const data = JSON.stringify({ app: "truss-to-risa", version: 1, state: S }, null, 1); await saveFile(fname("project", "json"), data); };
+  $("#btnOpen").onclick = () => $("#fileOpen").click();
+  $("#fileOpen").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    try { const j = JSON.parse(await f.text()); if (!j.state?.nodes) throw 0; snap(); S = Object.assign(blankState(), j.state); S.meta = Object.assign(blankState().meta, j.state.meta); if (!S.meta.unit) S.meta.unit = { tc: 1, bc: 1 }; fixSeq(); selected = null; renderAll(); toast("Project opened."); }
+    catch { toast("That file isn't a Truss to RISA project."); } };
+  // export
+  $("#btnExport").onclick = () => { showTab("export"); document.querySelector('[data-pane="export"]').scrollIntoView({ behavior: "smooth", block: "start" }); };
+  $("#exportCards").addEventListener("click", e => { const b = e.target.closest("[data-copy]"); if (!b) return; const t = tables().T[b.dataset.copy]; const txt = toTSV(t, S.meta.headers);
+    navigator.clipboard.writeText(txt).then(() => toast(`Copied ${t.rows.length} rows. Click the first cell in RISA's ${t.where.split(" (")[0]} and paste.`))
+      .catch(() => { const pre = b.closest(".card").querySelector("pre"); pre.textContent = txt; const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Copy was blocked. The full table is selected; press Ctrl+C."); }); });
+  $("#checksList").addEventListener("click", e => { const b = e.target.closest("[data-locate]"); if (!b) return; const c = runChecks().find(x => x.n === +b.dataset.locate); if (!c) return;
+    const k = c.refs[0]; selected = { k }; renderModel(); renderTables(); $("#model").scrollIntoView({ behavior: "smooth", block: "center" }); });
+  wireStraighten();
+  $("#btnR3d").onclick = exportR3d; $("#btnR3dCopy").onclick = copyR3d;
+  $("#btnTplUp").onclick = () => $("#fileTpl").click();
+  $("#fileTpl").onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; const t = await f.text(); const miss = validateTemplate(t);
+    if (miss.length) return toast("That file doesn't look like a RISA-3D model (missing " + miss.slice(0, 3).join(", ") + ").");
+    tplText = t; tplName = f.name; renderAll(); toast("Template set: " + f.name + " (RISA " + tplVersion() + ")"); };
+  $("#btnTplReset").onclick = () => { tplText = BUILTIN_TPL; tplName = "built-in 2D truss (RISA-3D v23.02)"; renderAll(); };
+}
+const fname = (what, ext) => `${(S.meta.mark || "truss").replace(/[^\w.-]+/g, "_")}_${what}.${ext}`;
+let downloads = null;
+async function saveFile(name, data) {
+  if (!downloads) { toast("Downloads aren't available in this view."); return false; }
+  try { await downloads.save({ filename: name, data }); toast("Saved " + name); return true; }
+  catch (e) { if (e?.code !== "declined") toast("Couldn't save the file (" + (e?.code || "error") + ")."); return false; }
+}
+/* minimal ZIP writer (stored, no compression) so the export has no outside dependency */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC_T[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function makeZip(files) { // files: [{name, text}] ; text encoded as latin-1 bytes (RISA files are ANSI)
+  const enc = str => Uint8Array.from(str, ch => ch.charCodeAt(0) & 255);
+  const parts = [], central = []; let off = 0; const d = new Date();
+  const dt = ((d.getFullYear() - 1980) << 9 | (d.getMonth() + 1) << 5 | d.getDate()) & 0xFFFF, tm = (d.getHours() << 11 | d.getMinutes() << 5 | (d.getSeconds() >> 1)) & 0xFFFF;
+  for (const f of files) {
+    const nm = enc(f.name), data = enc(f.text), crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30)); h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(10, tm, true); h.setUint16(12, dt, true);
+    h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, nm.length, true);
+    const c = new DataView(new ArrayBuffer(46)); c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(12, tm, true); c.setUint16(14, dt, true);
+    c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    parts.push(new Uint8Array(h.buffer), nm, data); central.push(new Uint8Array(c.buffer), nm); off += 30 + nm.length + data.length;
+  }
+  const cdSize = central.reduce((a, b) => a + b.length, 0); const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cdSize, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: "application/zip" });
+}
+function dlStatus(cls, msg) { const el = $("#dlStatus"); el.hidden = !msg; el.className = "status " + (cls || ""); el.textContent = msg || ""; }
+function prepR3d() {
+  const chk = runChecks(); const bad = chk.filter(c => c.lvl === "bad");
+  if (bad.length) { dlStatus("bad", `Fix ${bad.length} blocking check${bad.length > 1 ? "s" : ""} first (${bad.map(b => "#" + b.n).join(", ")}). They are circled in red on the model, numbered to match the Checks tab.`); showTab("checks"); $("#model").scrollIntoView({ behavior: "smooth", block: "center" }); return null; }
+  const r = buildR3d(); if (r.missing.length) { dlStatus("bad", "The template is missing: " + r.missing.join(", ")); return null; }
+  return r;
+}
+async function exportR3d() {
+  let r; try { r = prepR3d(); } catch (e) { dlStatus("bad", "Couldn't build the file: " + (e?.message || e)); return; } if (!r) return;
+  const name = fname("RISA", "r3d");
+  if (!downloads) { $("#dlFallback").hidden = false; $("#dxfText").value = r.text; dlStatus("bad", `Downloads aren't available in this view. Use "Copy .r3d text", paste into Notepad and save as ${name} (Save as type: All files).`); return; }
+  const blob = makeZip([{ name, text: r.text }]);
+  dlStatus("work", "Waiting for you to confirm the download in the prompt…");
+  const slow = setTimeout(() => dlStatus("work", `Still waiting. If no save prompt appeared, use "Copy .r3d text" and save it as ${name}.`), 8000);
+  try { await downloads.save({ filename: fname("RISA", "zip"), data: blob }); dlStatus("good", `Saved ${fname("RISA", "zip")}. Unzip it and open ${name} in RISA-3D.`); }
+  catch (e) { const c = e?.code;
+    dlStatus(c === "declined" ? "" : "bad", c === "declined" ? "Download cancelled." : c === "rate_limited" ? "A save prompt is already open. Finish or close it, then try again." :
+      `The download didn't go through (${c || "error"}). Use "Copy .r3d text" instead.`);
+    if (c !== "declined") { $("#dlFallback").hidden = false; $("#dxfText").value = r.text; } }
+  finally { clearTimeout(slow); }
+}
+function copyR3d() {
+  let r; try { r = prepR3d(); } catch (e) { dlStatus("bad", "Couldn't build the file: " + (e?.message || e)); return; } if (!r) return;
+  const name = fname("RISA", "r3d"); $("#dlFallback").hidden = false; $("#dxfText").value = r.text;
+  navigator.clipboard.writeText(r.text).then(() => dlStatus("good", `Copied. Paste into Notepad and save as ${name} with "Save as type: All files".`))
+    .catch(() => { const ta = $("#dxfText"); ta.focus(); ta.select(); dlStatus("work", "Copy was blocked. The text below is selected; press Ctrl+C."); });
+}
+/* ============ RISA-3D .r3d writer (template splice) ============ */
+// Record layouts taken from a RISA-3D v23.02 file. Only the model blocks are rewritten; everything else is kept verbatim.
+const BUILTIN_TPL = (document.getElementById("r3dTemplate")?.textContent || "").replace(/^\s+/, "");
+let tplText = BUILTIN_TPL, tplName = "built-in 2D truss (RISA-3D v23.02)";
+const tplLines = () => tplText.split(/\r?\n/);
+function tplVersion(t = tplText) { const m = t.match(/\[VERSION_NUMBER\]\s*<1>\s*\r?\n\s*([\d.]+)/) || t.match(/\[VERSION_NO\]\s*<1>\s*\r?\n\s*([\d.]+)/); return m ? m[1] : "?"; }
+function tplLabelLen(t = tplText) { const m = t.match(/\[LABEL_LENGTHS\]\s*<1>\s*\r?\n([^\r\n]+)/); const v = m ? m[1].replace(";", "").trim().split(/\s+/).map(Number) : [];
+  return { node: v[7] || 32, member: v[8] || 32, shape: v[4] || 32, set: v[3] || 32, list: v[5] || 32, blc: v[11] || 32 }; }
+function woodMaterials(t = tplText) {
+  const m = t.match(/\[\.WOOD_MATERIAL\]\s*<(\d+)>\s*\r?\n([\s\S]*?)(\r?\n\s*\r?\n|\[\.\.CUSTOM|\[\.END_WOOD_MATERIAL\])/); if (!m) return [];
+  return m[2].split(/\r?\n/).filter(l => l.trim().startsWith('"')).map((l, i) => { const q = l.match(/"([^"]*)"\s*"([^"]*)"/); return { i, label: q ? q[1].trim() : "", species: q ? q[2].trim() : "" }; });
+}
+function hrMaterials(t = tplText) {
+  const m = t.match(/\[\.HR_STEEL_MATERIAL\]\s*<\d+>\s*\r?\n([\s\S]*?)\[\.END_HR_STEEL_MATERIAL\]/); if (!m) return [];
+  return m[1].split(/\r?\n/).filter(l => l.trim().startsWith('"')).map((l, i) => ({ i, label: (l.match(/"([^"]*)"/) || [])[1]?.trim() || "" }));
+}
+// AISC Manual Table 2-4 preferred material by shape: W/WT A992, HP A572 Gr.50, HSS A500 Gr.C, Pipe A53 Gr.B, L/C/MC/S/M/plate/bar A36
+function aiscGrade(shape) { const s = String(shape || "").toUpperCase().replace(/\s+/g, "");
+  if (/^HSS/.test(s)) return "A500 Gr.C"; if (/^PIPE/.test(s)) return "A53 Gr.B"; if (/^HP/.test(s)) return "A572 Gr.50";
+  if (/^(W|WT)\d/.test(s)) return "A992"; if (/^(LL|L|2L|C|MC|S|M|MT|ST|PL|BAR)\d/.test(s)) return "A36"; return "A992"; }
+function steelMat(shape) { const h = hrMaterials(); const pick = lab => h.find(x => x.label === lab) || h.find(x => x.label.startsWith(lab));
+  return (S.meta.steelGrade && pick(S.meta.steelGrade)) || pick(aiscGrade(shape || "HSS")) || h[0] || { i: 0, label: "" }; }
+function speciesKey(g) { g = String(g || "");
+  if (/spf|spruce/i.test(g)) return "SPF"; if (/hem|\bHF\b/i.test(g)) return "HF"; if (/southern|\bSYP\b|\bSP\b/i.test(g)) return "SP"; if (/\bDF|douglas/i.test(g)) return "DF"; return ""; }
+function woodMat(m) {
+  const mats = woodMaterials(); if (!mats.length) return { i: 0, label: "" };
+  if (S.meta.material) { const f = mats.find(x => x.label === S.meta.material); if (f) return f; }
+  const k = speciesKey(m?.grade) || speciesKey(S.meta.grade) || "SPF";
+  return mats.find(x => x.label.toUpperCase() === k) || mats.find(x => x.label.toUpperCase().startsWith(k)) || mats[0];
+}
+const NOMINAL = { 1: 0.75, 2: 1.5, 3: 2.5, 4: 3.5, 5: 4.5, 6: 5.5, 8: 7.25, 10: 9.25, 12: 11.25, 14: 13.25, 16: 15.25 };
+function rectDims(shape) { // "2X6", "2-2X6" -> {b,d} actual inches
+  const m = String(shape).toUpperCase().match(/^(?:(\d)-)?(\d+)X(\d+)$/); if (!m) return null;
+  const ply = +(m[1] || 1), t = +m[2], w = +m[3];
+  const act = n => n >= 5 && t >= 5 ? n - 0.5 : NOMINAL[n]; const b = act(t) * ply, d = act(w);
+  return b && d ? { b, d } : null;
+}
+function rectProps({ b, d }) { const a = Math.max(b, d), c = Math.min(b, d);
+  return { A: b * d, Iyy: d * b ** 3 / 12, Izz: b * d ** 3 / 12, J: a * c ** 3 * (1 / 3 - 0.21 * (c / a) * (1 - c ** 4 / (12 * a ** 4))) }; }
+const q = (s, n) => '"' + String(s).slice(0, n).padEnd(n) + '"';
+const f6 = v => (Math.abs(v) < 5e-7 ? 0 : v).toFixed(6);
+const fE = v => { const s = (Math.abs(v) < 1e-12 ? 0 : v).toExponential(12); return s.replace(/e([+-])(\d)$/, "e$10$2"); };
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); }));
+const BENPIN_I = 48, BENPIN_J = 3072; // release bit field: bits 0-5 I end (Fx Fy Fz Mx My Mz), bits 6-11 J end
+function r3dModel() {
+  const L = layout(); const LL = tplLabelLen(); const nodes = L.nodes; // Y-up always
+  // steel HSS: shapes referenced directly from the AISC database (section set -1). Wood: one section set per shape + material.
+  const sets = []; const setKey = new Map(); const hss = new Map();
+  const mems = L.members.map(m => { const h = normHSS(m.shape);
+    if (h) { hss.set(h.name, h); return { ...m, steel: true, mat: steelMat(h.name), set: -1 }; }
+    const mat = woodMat(m.m); const k = m.shape + "|" + mat.i;
+    if (!setKey.has(k)) { setKey.set(k, sets.length); sets.push({ label: (m.shape + (sets.some(s => s.shape === m.shape) ? " " + mat.label : "")), shape: m.shape, mat, dims: rectDims(m.shape) }); }
+    return { ...m, steel: false, set: setKey.get(k), mat }; });
+  return { L, LL, nodes, sets, mems, hss: [...hss.values()] };
+}
+function buildR3d() {
+  const { LL, nodes, sets, mems, L, hss } = r3dModel(); const planar = S.meta.planar; const out = {};
+  const listName = (tplText.match(/\[\.WOOD_SECTION_SETS\][^\n]*\n\s*"[^"]*"\s*"([^"]*)"/) || [])[1]?.trim() || "Rectangular";
+  // nodes
+  out.NODES = `[NODES] <${nodes.length}>\n` + nodes.map(n => `${q(n.label, LL.node)}   ${fE(n.x)}   ${fE(n.y)}   ${fE(n.z)}   ${fE(0)} 65535 0 0 -1 -1 0;`).join("\n") + `\n[END_NODES]`;
+  // boundary conditions: 0 free, 1 fixed, 4 reaction
+  const idx = new Map(nodes.map((n, i) => [n.label, i + 1])); const bc = new Map(); const code = { "": 0, F: 1, R: 4 };
+  for (const sp of L.supports) bc.set(sp.node, sp.bc.map(v => code[v] ?? 0));
+  const bcRows = [...bc.entries()].sort((a, b) => idx.get(a[0]) - idx.get(b[0]))
+    .map(([k, c]) => `${idx.get(k)} ${c.join(" ")} 0 ${Array(6).fill("0.000000").join(" ")} -1 -1 ${Array(6).fill("0.000000").join(" ")} 0 0;`);
+  out.BOUNDARY_CONDITIONS = `[BOUNDARY_CONDITIONS] <${bcRows.length}>\n${bcRows.join("\n")}\n[END_BOUNDARY_CONDITIONS]`;
+  // wood section sets
+  out.WOOD_SECTION_SETS = `[.WOOD_SECTION_SETS] <${sets.length}>\n` + sets.map(s => { const p = s.dims ? rectProps(s.dims) : { A: 0, Iyy: 0, Izz: 0, J: 0 };
+    return `${q(s.label, LL.set)} ${q(listName, LL.list)} ${q(s.shape, LL.shape)} 1 3 ${s.mat.i} 0 0 ${f6(p.A)} ${f6(p.Iyy)} ${f6(p.Izz)} ${f6(p.J)} -1;`; }).join("\n") + `\n[.END_WOOD_SECTION_SETS]`;
+  // members
+  const n = mems.length; const main = [], dp = [], brb = [], sup = [], det = [], calc = [];
+  for (const m of mems) {
+    const lab = q(m.label, LL.member); const chord = m.m.role === "top" || m.m.role === "bottom";
+    const rel = (m.relI ? BENPIN_I : 0) + (m.relJ ? BENPIN_J : 0);
+    if (m.steel) main.push(`${lab} ${q("Tube", LL.list)} ${q(m.shape, LL.shape)} ${idx.get(m.i)} ${idx.get(m.j)} 0 0.000000 -1 0 0 1 ${m.mat.i} ${rel} 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 1 0 0 0 0 0.000000 0.000000 0.000000 0.000000 ${q("", 32)} 0;`);
+    else main.push(`${lab} ${q(listName, LL.list)} ${q(m.shape, LL.shape)} ${idx.get(m.i)} ${idx.get(m.j)} 0 0.000000 ${m.set} 0 0 3 ${m.mat.i} ${rel} 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 ${chord ? 1 : 0} 0 0 0 0 0.000000 0.000000 0.000000 0.000000 ${q("", 32)} 0;`);
+    dp.push(`${lab} 1 ${Array(12).fill("-1.000000").join(" ")} 0 0 0 ${Array(6).fill("-1.000000").join(" ")} ${q("Optimize", 32)} ${q("Optimize", 32)} -1.000000 0.000000 -1.000000 0 0 0.000000 0.000000 0.000000 0.000000 0 0 0;`);
+    brb.push(`${lab} 38.000000 46.000000 0 -1.000000 -1.000000 -1.000000 -1.000000;`);
+    sup.push(`${lab} 0 0 0 -1 -1 65535 -1 "${uuid()}" 0 0 0 ${q("", 32)};`);
+    det.push(`${lab} 10 0.000000 0.000000 0.000000 10 0.000000 0.000000 0.000000;`);
+    calc.push(`-1 -1 0 0 -1.000000 -1.000000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 0.000000 0.000000 -1.000000 0.000000 0 0 0 0 0;`);
+  }
+  const blk = (tag, rows) => `[.${tag}] <${n}>\n${rows.join("\n")}\n[.END_${tag}]`;
+  out.MEMBERS = `[MEMBERS]\n\n${blk("MEMBERS_MAIN_DATA", main)}\n\n${blk("MEMBERS_DESIGN_PARAMETERS", dp)}\n\n${blk("MEMBERS_BRB_DATA", brb)}\n\n${blk("MEMBERS_SUPPLEMENTARY_DATA", sup)}\n\n${blk("MEMBERS_DETAILING_DATA", det)}\n\n${blk("MEMBERS_DESIGN_CALCMODE_PARAMETERS", calc)}\n\n[END_MEMBERS]`;
+  // unit loads: TC UNIT on top chords, BC UNIT on bottom chords, k/ft in global -Y over the full length, no self-weight
+  const midx = new Map(mems.map((m, i) => [m.label, i + 1]));
+  const cases = [{ label: "TC UNIT", role: "top", v: S.meta.unit.tc }, { label: "BC UNIT", role: "bottom", v: S.meta.unit.bc }]
+    .map(c => ({ ...c, loads: c.v ? mems.filter(m => m.m.role === c.role).map(m => [midx.get(m.label), -c.v]) : [] }));
+  const used = cases;
+  out.BASIC_LOAD_CASES = `[BASIC_LOAD_CASES] <${used.length}>\n` + used.map((c, k) => `${k + 1} ${q(c.label, LL.blc)} 0 0 0 ${c.loads.length} 0 0 0 0.000000 0.000000 0.000000 -1 1.000000 0;`).join("\n") + `\n[END_BASIC_LOAD_CASES]`;
+  const dl = used.flatMap(c => c.loads.map(([i, v]) => `${i} 89 ${f6(v)} ${f6(v)} 0.000000 -100.000000 0 0 0.000000 0.000000 2 0.000000 0.000000 0.000000 1;`));
+  // one load combination per unit case; BLCs are referenced by number
+  const LCW = (tplText.match(/\[LOAD_COMBINATIONS\][^\n]*\n"([^"]*)"/) || [, " ".repeat(79)])[1].length;
+  const lcRow = (name, blc) => `${q(name, LCW)} 0 1 0 0 0 1.000000 1.000000 1.000000 0 0 1 1 0 1 1 1 1 0 1 1 1 0 1 ${q(String(blc), LL.blc)} 1.000000 ${Array(9).fill(`${q("", LL.blc)} 0.000000`).join(" ")};`;
+  out.LOAD_COMBINATIONS = `[LOAD_COMBINATIONS] <${used.length}>\n` + used.map((c, k) => lcRow(c.label, k + 1)).join("\n") + `\n[END_LOAD_COMBINATIONS]`;
+  out.DIRECT_DISTRIBUTED_LOADS = `[DIRECT_DISTRIBUTED_LOADS] <${dl.length}>\n${dl.join("\n")}\n[END_DIRECT_DISTRIBUTED_LOADS]`;
+  out.RF_MTO_VALUES = `[RF_MTO_VALUES] <0>\n[END_RF_MTO_VALUES]`;
+  // splice into template
+  let t = tplText.replace(/\r\n/g, "\n"); const missing = [];
+  const rep = (re, val, name, insertBefore) => { if (re.test(t)) t = t.replace(re, () => val);
+    else if (insertBefore && insertBefore.test(t)) t = t.replace(insertBefore, m => val + "\n\n\n" + m); else missing.push(name); };
+  rep(/\[NODES\][^\n]*\n[\s\S]*?\[END_NODES\]/, out.NODES, "NODES");
+  rep(/\[BOUNDARY_CONDITIONS\][^\n]*\n[\s\S]*?\[END_BOUNDARY_CONDITIONS\]/, out.BOUNDARY_CONDITIONS, "BOUNDARY_CONDITIONS", /\[SHAPES_LIST\]/);
+  if (sets.length) rep(/\[\.WOOD_SECTION_SETS\][^\n]*\n[\s\S]*?\[\.END_WOOD_SECTION_SETS\]/, out.WOOD_SECTION_SETS, "WOOD_SECTION_SETS", /\[END_SECTION_SETS\]/);
+  // make sure every HSS used is in SHAPES_LIST (database 5 = AISC, type 2 = tube, material 1 = hot rolled)
+  const sm = t.match(/\[SHAPES_LIST\]\s*<(\d+)>\n([\s\S]*?)\[END_SHAPES_LIST\]/);
+  if (hss.length) { if (!sm) missing.push("SHAPES_LIST"); else {
+    const have = new Set([...sm[2].matchAll(/^"([^"]*)"/gm)].map(x => x[1].trim())); const add = [];
+    for (const h of hss) if (!have.has(h.name)) { const p = hssProps(h);
+      add.push(`${q(h.name, LL.shape)} 5 2 1 ${[p.A, h.H, p.t, h.B, 0, 0, p.Izz, p.Iyy, p.Zzz, p.Zyy, p.J, ...Array(12).fill(0), 7].map(f6).join(" ")};`); }
+    if (add.length) t = t.replace(sm[0], `[SHAPES_LIST] <${+sm[1] + add.length}>\n${sm[2]}${add.join("\n")}\n[END_SHAPES_LIST]`); } }
+  rep(/\[MEMBERS\]\n[\s\S]*?\[END_MEMBERS\]/, out.MEMBERS, "MEMBERS");
+  if (/\[RF_MTO_VALUES\]/.test(t)) rep(/\[RF_MTO_VALUES\][^\n]*\n[\s\S]*?\[END_RF_MTO_VALUES\]/, out.RF_MTO_VALUES, "RF_MTO_VALUES");
+  rep(/\[BASIC_LOAD_CASES\][^\n]*\n[\s\S]*?\[END_BASIC_LOAD_CASES\]/, out.BASIC_LOAD_CASES, "BASIC_LOAD_CASES", /\[LOAD_COMBINATIONS\]/);
+  rep(/\[DIRECT_DISTRIBUTED_LOADS\][^\n]*\n[\s\S]*?\[END_DIRECT_DISTRIBUTED_LOADS\]/, out.DIRECT_DISTRIBUTED_LOADS, "DIRECT_DISTRIBUTED_LOADS", /\[TIME_HISTORY_INPUT\]|\[LOAD_COMBINATIONS\]/);
+  rep(/\[LOAD_COMBINATIONS\][^\n]*\n[\s\S]*?\[END_LOAD_COMBINATIONS\]/, out.LOAD_COMBINATIONS, "LOAD_COMBINATIONS");
+  // other load types in a user template would no longer match the load case counts: empty them
+  t = t.replace(/\[(NODAL_LOADS|DIRECT_POINT_LOADS|DIRECT_POINT_MOMENTS|NODAL_DISPLACEMENTS|AREA_LOADS|SURFACE_LOADS|MOVING_LOADS|MEMBER_THERMAL_LOADS)\][^\n]*\n[\s\S]*?\[END_\1\]/g, (_, tag) => `[${tag}] <0>\n[END_${tag}]`);
+  return { text: t.replace(/\n/g, "\r\n"), missing, sets, mems, nodes, hss, cases: used, bcCount: bcRows.length };
+}
+function validateTemplate(t) {
+  const need = ["[RISA-3D_INPUT_DATA]", "[NODES]", "[MEMBERS]", "[.WOOD_MATERIAL]", "[SECTION_SETS]", "[LOAD_COMBINATIONS]", "[FINISH]"];
+  return need.filter(k => !t.includes(k));
+}
+
+/* ============ boot ============ */
+function boot() {
+  S = blankState(); generate("fink", 28, 4, 0, 2, 6); sortNodes(); S.meta.mark = "T1 (example)"; S.meta.spacingSrc = "assumed"; S.example = true;
+  wire(); renderAll(); renderDrawing();
+  if (window.claude?.use) {
+    claude.use("sample").then(async fn => {
+      if (!fn) { setAI("", "Claude isn't available in this view, so the reader is off. Templates, editing and export still work."); return; }
+      const lim = await fn.limits().catch(() => null);
+      if (!lim?.images) { setAI("", "This view can't send images to Claude. Templates, editing and export still work."); return; }
+      sampleFn = fn; sampleImgLimit = lim.images.maxCount || 1; $("#btnRead").disabled = !canRead();
+    });
+    claude.use("downloads").then(d => { downloads = d; if (!d) { $("#zipNote").textContent = "Downloads are off in this view. Use Copy .r3d text and save it as a .r3d file."; } });
+  } else { setAI("", "Open this page in Claude to read drawings. Templates, editing and copy-paste export work here."); }
+}
+boot();
+</script>
+<script>
+// Added for the team site (not part of the claude.ai original): there is no claude.ai runtime here,
+// so Save project and Export to RISA use a normal browser download instead of claude.ai's.
+if (!window.claude) {
+  downloads = {
+    save: async ({ filename, data }) => {
+      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/octet-stream" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    },
+  };
+}
+</script>
+</body>
+</html>
