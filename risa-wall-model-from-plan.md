@@ -167,7 +167,7 @@ Confirm shape names against the RISA shape database in the user's version.
 
 - **DXF structure:** high confidence. It is verified by parser and orphan check.
 - **RISA mapping `3DFACE` → plates and keeping layer groupings on import:** medium confidence until tested in the user's RISA version.
-- **Native `.r3d` files:** RISA-3D Help, Appendix D documents the file format. See the `.r3d` step in sketch-to-risa-moment-frame.md. Plate records are not yet covered by `r3d.py`, so for wall models the DXF and CSV path stays the primary deliverable.
+- **Native `.r3d` files:** never generate one. The format is proprietary and undocumented; offer DXF or spreadsheet paste instead.
 - **Approximate and placeholder inputs:** wall height, scaled partitions, and walls located from areas are approximate. List them.
 - **Professional review:** all output is a conceptual starting point for review by the engineer of record.
 
