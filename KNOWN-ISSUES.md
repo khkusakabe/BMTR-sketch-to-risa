@@ -23,4 +23,5 @@ What we know needs fixing or checking, as of 2026-10-27 4:12 PM. Put your name o
 - 2D Frame and 3D Building build a `.r3d` in the browser from Chandler's generators.
 - The browser tracer opens a project's own sheet.
 - README describes the whole project.
+- Reading a sketch no longer needs an API key: copy the prompt into your own Claude and paste its answer back, or use the MCP server's reading tools.
 - Truss to RISA is in the repo (`truss/`), with its firm email removed from the template and browser downloads for Save and Export.

@@ -90,7 +90,7 @@
         const img = new Image();
         img.src = URL.createObjectURL(file);
         img.alt = "Uploaded plan sheet";
-        await img.decode();
+        await new Promise((res, rej) => { if (img.complete && img.naturalWidth) return res(); img.onload = () => res(); img.onerror = () => rej(new Error("This image could not be opened.")); });  // load event: decode() can stall in some browsers
         box.replaceChildren(img);
         planSource = img;
       }
@@ -184,17 +184,27 @@
   function readerCard() {
     const has = !!SketchReader.getKey();
     return `<div class="card" id="reader">
-      <b>Read the sketch</b> <span class="meta">optional</span>
+      <b>Read the sketch with Claude</b> <span class="meta">optional</span>
       <div class="note">Claude reads the members, labels, size table, dimensions, fixed-end triangles and base marks on this sheet and fills in the inputs below. Check every value before you download.</div>
-      <div class="note" style="margin-top:6px">This needs your own Anthropic API key. No key? Type the values into the form below and download, or have Claude Desktop or Claude Code read the sketch with the team's <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/tree/main/mcp">MCP server</a>, no key needed.</div>
-      <div id="keyRow" hidden style="margin-top:10px">
-        <label class="f">Anthropic API key <span>kept in this browser only; the sheet goes straight from this page to Anthropic</span>
-          <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" type="button" id="readBtn">Read the sketch</button>
-        <button class="btn" type="button" id="keyBtn" ${has ? "" : "hidden"}>Change API key</button>
-      </div>
+      <h3>With your own Claude (no API key)</h3>
+      <ol class="note" style="margin:0;padding-left:20px">
+        <li><a href="#" id="dlForClaude">Download the sheet for Claude</a> and <a href="#" id="copyPrompt">copy the prompt</a>.</li>
+        <li>In claude.ai, Claude Desktop or Claude Code, attach the sheet, paste the prompt and send it.</li>
+        <li>Paste Claude's whole answer here:</li>
+      </ol>
+      <textarea id="pasteAnswer" rows="4" placeholder="Paste Claude's JSON answer" style="width:100%;box-sizing:border-box;margin-top:8px;padding:8px 10px;border:1px solid #1b1b1b;border-radius:4px;font:13px/1.4 ui-monospace,Consolas,monospace;resize:none"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn primary" type="button" id="useAnswer">Use Claude's answer</button></div>
+      <p class="note" style="margin-top:8px">With the team's <a href="https://github.com/khkusakabe/BMTR-sketch-to-risa/tree/main/mcp">MCP server</a> installed, Claude Desktop or Claude Code can also build the .r3d directly.</p>
+      <details style="margin-top:6px"><summary class="note" style="cursor:pointer">Or read it from this page with an Anthropic API key</summary>
+        <div id="keyRow" hidden style="margin-top:10px">
+          <label class="f">Anthropic API key <span>kept in this browser only; the sheet goes straight from this page to Anthropic</span>
+            <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" type="button" id="readBtn">Read with API key</button>
+          <button class="btn" type="button" id="keyBtn" ${has ? "" : "hidden"}>Change API key</button>
+        </div>
+      </details>
       <div class="ok" id="readOut" aria-live="polite">${p.reading ? readSummary(p.reading, p.readingWarnings || []) : ""}</div>
     </div>`;
   }
@@ -216,8 +226,69 @@
       ${(r.notes || []).length ? `<div class="note" style="margin-top:8px"><b>Claude's notes</b><ul style="margin:4px 0 0;padding-left:20px">${li(r.notes)}</ul></div>` : ""}`;
   }
 
+  // The sheet as the image Claude should see, and its size in pixels (stated in the prompt)
+  async function sheetImage() {
+    await planReady;
+    if (!planSource) return null;
+    const w0 = planSource.naturalWidth || planSource.width, h0 = planSource.naturalHeight || planSource.height;
+    const k = Math.min(1, 2000 / Math.max(w0, h0));
+    const c = document.createElement("canvas");
+    c.width = Math.round(w0 * k); c.height = Math.round(h0 * k);
+    const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+    x.drawImage(planSource, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+    return { blob, width: c.width, height: c.height };
+  }
+
   function wireReader(spec, S) {
     const out = $("readOut"), form = $("mgForm");
+    const shapes = new Set([...S.Wlist, ...S.HSSlist]);
+
+    function applyReading(r) {
+      const { inputs, warnings } = p.kind === "frame" ? SketchReader.toMomentFrame(r) : SketchReader.toGrid(r);
+      const filled = [];
+      for (const [k, v] of Object.entries(inputs)) {
+        const el = form.elements[k];
+        if (!el) continue;
+        if (el.tagName === "SELECT" && ![...el.options].some((o) => o.value === v)) { warnings.push(`${k} = ${v} isn't in the shape list; left as ${el.value}.`); continue; }
+        el.value = Array.isArray(v) ? v.join(", ") : v;
+        filled.push(k);
+      }
+      MGStore.update(p.id, { reading: r, readingWarnings: warnings, status: "Read" });
+      p.reading = r;
+      out.innerHTML = readSummary(r, warnings) + `<div class="note" style="margin-top:8px">Filled ${filled.length} inputs from the sketch. Loads aren't on the sketch, so enter them below.</div>`;
+    }
+
+    // ---- no key: the user's own Claude ----
+    $("dlForClaude").addEventListener("click", async (e) => {
+      e.preventDefault();
+      const img = await sheetImage();
+      if (!img) { out.textContent = "The plan sheet isn't loaded in this browser, so there's nothing to download."; return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(img.blob);
+      a.download = `${p.number} sheet for Claude.png`.replace(/[^\w. -]+/g, "_");
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    $("copyPrompt").addEventListener("click", async (e) => {
+      e.preventDefault();
+      const img = await sheetImage();
+      const text = SketchReader.promptFor({ hint: MGStore.systemLabel(p), width: img && img.width, height: img && img.height });
+      try { await navigator.clipboard.writeText(text); out.textContent = "Prompt copied. Paste it into Claude with the sheet attached."; }
+      catch (err) { $("pasteAnswer").value = text; $("pasteAnswer").select(); out.textContent = "Your browser blocked copying, so the prompt is in the box below. Copy it from there, then replace it with Claude's answer."; }
+    });
+    $("useAnswer").addEventListener("click", async () => {
+      try {
+        const img = await sheetImage();
+        const r = SketchReader.parse($("pasteAnswer").value, { width: img && img.width, height: img && img.height, shapes });
+        applyReading(r);
+        $("pasteAnswer").value = "";
+      } catch (err) {
+        out.textContent = err.message;
+      }
+    });
+
+    // ---- with an API key, from this page ----
     $("keyBtn").addEventListener("click", () => { $("keyRow").hidden = false; $("apiKey").focus(); });
     $("readBtn").addEventListener("click", async () => {
       const typed = $("apiKey").value.trim();
@@ -229,21 +300,9 @@
       btn.disabled = true;
       out.textContent = "Reading the sketch. This takes about half a minute...";
       try {
-        const shapes = new Set([...S.Wlist, ...S.HSSlist]);
         const r = await SketchReader.read(planSource, { hint: MGStore.systemLabel(p), shapes });
-        const { inputs, warnings } = p.kind === "frame" ? SketchReader.toMomentFrame(r) : SketchReader.toGrid(r);
-        const filled = [];
-        for (const [k, v] of Object.entries(inputs)) {
-          const el = form.elements[k];
-          if (!el) continue;
-          if (el.tagName === "SELECT" && ![...el.options].some((o) => o.value === v)) { warnings.push(`${k} = ${v} isn't in the shape list; left as ${el.value}.`); continue; }
-          el.value = Array.isArray(v) ? v.join(", ") : v;
-          filled.push(k);
-        }
         $("keyRow").hidden = true; $("keyBtn").hidden = false; $("apiKey").value = "";
-        MGStore.update(p.id, { reading: r, readingWarnings: warnings, status: "Read" });
-        p.reading = r;
-        out.innerHTML = readSummary(r, warnings) + `<div class="note" style="margin-top:8px">Filled ${filled.length} inputs from the sketch. Loads aren't on the sketch, so enter them below.</div>`;
+        applyReading(r);
       } catch (err) {
         if (/key was rejected/.test(err.message)) { SketchReader.setKey(""); $("keyRow").hidden = false; $("keyBtn").hidden = true; }
         out.textContent = err.message;

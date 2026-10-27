@@ -71,7 +71,7 @@ th{color:#6b6b6b;font-weight:600;font-size:14px}
     <li><span><b>New Project.</b> On the Projects page, click New Project. Enter a name and number.</span></li>
     <li><span><b>Upload the plan.</b> Drop a PDF, PNG or JPG. For a PDF, pick the sheet.</span></li>
     <li><span><b>Pick the system type:</b> 2D Frame, 2D Truss, 3D Building or 3D Misc Frame. Then click Create Project.</span></li>
-    <li><span><b>Build the model.</b> Fill in or check the inputs, or click <b>Read the sketch</b> to have Claude fill them in from your sheet.</span></li>
+    <li><span><b>Build the model.</b> Fill in or check the inputs, or have your own Claude read the sheet and fill them in (below).</span></li>
     <li><span><b>Download the <code>.r3d</code></b> and open it in RISA-3D. Check geometry, sections, loads and supports.</span></li>
   </ol>
 
@@ -88,13 +88,14 @@ th{color:#6b6b6b;font-weight:600;font-size:14px}
   </div>
   <p class="note" style="margin-top:12px">Every model gets basic load cases and ASCE 7-22 ASD load combinations. Check them against the standard before relying on them.</p>
 
-  <h2>Reading a sketch with Claude</h2>
+  <h2>Reading a sketch with your own Claude (no API key)</h2>
   <div class="grid">
-    <div class="card"><h3>On the website <span class="tag">needs an API key</span></h3>
-      <ul><li>Click <b>Read the sketch</b> in the workspace or the tracer</li><li>Paste your own Anthropic API key once. It stays in your browser, and the sheet goes straight to Anthropic</li><li>Review what Claude filled in before you download</li></ul></div>
+    <div class="card"><h3>On the website <span class="tag">no key</span></h3>
+      <ul><li>In the project, click <b>Download the sheet for Claude</b> and <b>copy the prompt</b></li><li>In claude.ai, Claude Desktop or Claude Code, attach the sheet, paste the prompt and send</li><li>Paste Claude's answer back and click <b>Use Claude's answer</b>. The inputs fill in, and the tracer picks it up too</li></ul></div>
     <div class="card"><h3>In Claude Desktop or Claude Code <span class="tag">no key</span></h3>
-      <ul><li>Add the repo's MCP server (setup in <code>mcp/README.md</code>)</li><li>Show Claude your sketch: "Read the bay, heights and sizes, check them with me, then build it"</li><li>The <code>.r3d</code> lands in the repo's <code>out/</code> folder</li></ul></div>
+      <ul><li>Add the repo's MCP server (setup in <code>mcp/README.md</code>)</li><li>Show Claude your sketch: "Read it with the Sketch to RISA rules, check the sizes with me, then build it"</li><li>The <code>.r3d</code> lands in the repo's <code>out/</code> folder</li></ul></div>
   </div>
+  <p class="note" style="margin-top:8px">Have an Anthropic API key? The project page can also read the sheet directly: open <b>Or read it from this page with an Anthropic API key</b>.</p>
 
   <h2>How Claude reads a sketch</h2>
   <table class="wide">

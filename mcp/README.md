@@ -11,6 +11,8 @@ No API key is needed for this: your own Claude does the reading. The server only
 | `build_moment_frame` | Two-story, one-bay steel moment frame: bay, story heights, W shapes, base, beam-end fixity, beam and lateral loads |
 | `build_roof_framing` | One-story column grid plus roof beams (B1 end bays pinned, B2 middle bays fixed, B3 interior pinned), loads by tributary area |
 | `build_foundation_plan` | The same column grid, columns only |
+| `get_sketch_reading_instructions` | The team's sketch-reading rules and the JSON format for a reading (the same prompt the website gives you) |
+| `convert_sketch_reading` | Checks a reading and turns it into generator inputs, plus a copy ready to paste into the website |
 | `list_shapes` | AISC W or HSS names the generators accept, with an optional filter |
 | `get_defaults` | The defaults a generator uses for anything you leave out |
 
@@ -41,7 +43,9 @@ Restart Claude Desktop. The tools show up under the tools menu.
 
 ## Try it
 
-> Here's a sketch of a two-story moment frame. Read the bay, the story heights and the sizes from it, check them with me, then build it with build_moment_frame.
+> Here's a sketch of a two-story moment frame. Read it with the Sketch to RISA rules, check the bay, story heights and sizes with me, then build it.
+
+Claude gets the rules from `get_sketch_reading_instructions`, reads the sketch, runs `convert_sketch_reading`, confirms with you, then calls `build_moment_frame`. You can also paste its reading into the website's **Use Claude's answer** box.
 
 ## Note
 

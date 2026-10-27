@@ -10,6 +10,7 @@ const readline = require("readline");
 
 const ROOT = path.resolve(__dirname, "..");
 const GEN = (f) => require(path.join(ROOT, "Final Models", f));
+const READER = () => require(path.join(ROOT, "mg", "sketch-reader.js"));  // same prompt, schema and checks as the website
 const OUT_DEFAULT = path.join(ROOT, "out");
 const log = (...a) => process.stderr.write(a.join(" ") + "\n");
 
@@ -87,6 +88,34 @@ const TOOLS = [
     },
   },
   {
+    name: "get_sketch_reading_instructions",
+    description: "Get the team's sketch-reading rules and the JSON format for a reading (nodes, members with section sets and end fixity, supports, size table, dimensions). " +
+      "Call this before reading a framing sketch, then reply with the JSON reading. The user can paste it into the website's 'Use Claude's answer' box, or pass it to convert_sketch_reading.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        hint: { type: "string", description: "What the engineer says it is, for example 2D Frame or 3D Building" },
+        width: { type: "number", description: "Image width in px, if known (for node positions)" },
+        height: { type: "number", description: "Image height in px, if known" },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "convert_sketch_reading",
+    description: "Check a sketch reading (the JSON from get_sketch_reading_instructions) and turn it into generator inputs: build_moment_frame inputs for a frame elevation, or build_roof_framing / build_foundation_plan inputs for a column grid. " +
+      "Returns the inputs, anything to check, and the reading ready to paste into the website.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        reading: { description: "The reading, as a JSON object or as the text of Claude's answer" },
+        target: { type: "string", enum: ["moment_frame", "grid"], description: "Which generator to prepare inputs for. Default: from the reading's system" },
+      },
+      required: ["reading"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "get_defaults",
     description: "Show the default inputs a generator uses when a value is omitted.",
     inputSchema: {
@@ -141,6 +170,29 @@ function callTool(name, args) {
     const hits = q ? list.filter((s) => s.toUpperCase().includes(q)) : list;
     return `${hits.length} ${args.family} shapes${q ? ` containing "${q}"` : ""}:\n${hits.join(", ")}`;
   }
+  if (name === "get_sketch_reading_instructions") {
+    return READER().promptFor({ hint: args.hint, width: args.width, height: args.height });
+  }
+  if (name === "convert_sketch_reading") {
+    const SR = READER();
+    const S = GEN("roof-framing.js").shapes();
+    const shapes = new Set([...S.Wlist, ...S.HSSlist]);
+    const text = typeof args.reading === "string" ? args.reading : JSON.stringify(args.reading);
+    const r = SR.parse(text, { shapes });
+    const target = args.target || (r.system === "moment_frame" || r.system === "braced_frame" ? "moment_frame" : "grid");
+    const { inputs, warnings } = target === "moment_frame" ? SR.toMomentFrame(r) : SR.toGrid(r);
+    const checks = [...(r.problems || []), ...warnings];
+    const { image, problems, ...forWebsite } = r;
+    return [
+      `Read ${r.nodes.length} nodes and ${r.members.length} members (${r.system.replace(/_/g, " ")}).`,
+      `Inputs for ${target === "moment_frame" ? "build_moment_frame" : "build_roof_framing or build_foundation_plan"} (loads aren't on the sketch; add them): ${JSON.stringify(inputs)}`,
+      checks.length ? `Check these: ${checks.join(" | ")}` : "No problems found in the reading.",
+      "Reading for the website's 'Use Claude's answer' box:",
+      "```json",
+      JSON.stringify(forWebsite),
+      "```",
+    ].join("\n");
+  }
   if (name === "get_defaults") {
     const g = GENERATORS[args.generator];
     if (!g) throw new Error(`Unknown generator "${args.generator}"`);
@@ -162,8 +214,8 @@ function handle(msg) {
       return reply(id, {
         protocolVersion: (params && params.protocolVersion) || "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "sketch-to-risa", version: "0.1.0" },
-        instructions: "Tools that write RISA-3D .r3d models from framing inputs. Read the user's sketch or plan yourself, confirm the dimensions and sizes, then call a build tool. The result is a starting model for an engineer to check in RISA.",
+        serverInfo: { name: "sketch-to-risa", version: "0.2.0" },
+        instructions: "Tools that write RISA-3D .r3d models from framing inputs. To read a sketch, call get_sketch_reading_instructions, read the sketch into that JSON format, call convert_sketch_reading, confirm the dimensions and sizes with the user, then call a build tool. The result is a starting model for an engineer to check in RISA.",
       });
     case "ping":
       return reply(id, {});

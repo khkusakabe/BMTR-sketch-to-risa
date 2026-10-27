@@ -75,7 +75,7 @@
       } else {
         const img = new Image();
         img.src = URL.createObjectURL(f);
-        await img.decode();
+        await new Promise((res, rej) => { if (img.complete && img.naturalWidth) return res(); img.onload = () => res(); img.onerror = () => rej(new Error("This image could not be opened.")); });  // load event: decode() can stall in some browsers
         $("fileMeta").textContent = `Image · ${img.naturalWidth} x ${img.naturalHeight} px`;
         sheets.appendChild(sheetButton("Sheet 1", thumb(img, img.naturalWidth, img.naturalHeight), 1));
       }

@@ -2,8 +2,12 @@
 // nodes in feet, members with section-set labels and end fixity, supports, the size table,
 // and the generator inputs (bay and story heights, or grid spacings).
 //
-// Runs entirely in the browser. The call goes straight from this page to the Anthropic API
-// with the user's own API key, which is kept in this browser's localStorage only.
+// Two ways to read, both in the browser:
+//   - No key: promptFor() gives a prompt to paste into the user's own Claude (claude.ai, Claude
+//     Desktop, Claude Code) with the sheet attached; parse() turns Claude's JSON answer into a reading.
+//   - API key: read() calls the Anthropic API from this page with the user's own key, kept in this
+//     browser's localStorage only.
+// Also loads in Node (module.exports) so the MCP server can share the prompt, schema and checks.
 // Sketch nomenclature (Model Creator rules):
 //   pen-drawn lines are members (printed ruled lines are ignored); a shaded triangle at a beam end
 //   is a fixed (moment) connection; a horizontal line over diagonal hatch at a base is a fixed base;
@@ -11,7 +15,7 @@
 //   shapes (a struck-out size is void, use its replacement); dimension strings give geometry in feet.
 "use strict";
 
-window.SketchReader = (() => {
+const SketchReaderLib = (() => {
   const KEY = "mg-anthropic-key";
   const MODEL = "claude-opus-5-5";
   const MAX_PX = 1568;  // long side of the image sent to the model
@@ -132,7 +136,7 @@ Model rules:
     if (src instanceof Blob) {
       const img = new Image();
       img.src = URL.createObjectURL(src);
-      await img.decode();
+      await new Promise((res, rej) => { if (img.complete && img.naturalWidth) return res(); img.onload = () => res(); img.onerror = () => rej(new Error("This image could not be opened.")); });  // load event: decode() can stall in some browsers
       return img;
     }
     return src;
@@ -253,5 +257,41 @@ Model rules:
     return { inputs: out, warnings: warn };
   }
 
-  return { read, getKey, setKey, toMomentFrame, toGrid, normShape, MODEL };
+  // ---------- no-key path: the user's own Claude reads the sheet ----------
+  // width/height: the sheet's size in pixels, so node positions line up with it in the tracer.
+  function promptFor(opts = {}) {
+    const size = opts.width && opts.height ? ` The attached image is ${opts.width} x ${opts.height} px; give px_x and px_y in that frame.` : "";
+    return [
+      SYSTEM,
+      "",
+      `Read the attached sketch.${opts.hint ? ` The engineer says this is a ${opts.hint}.` : ""}${size}`,
+      "Answer with ONE JSON object and nothing else, in a ```json code block, that matches this JSON Schema:",
+      "```json",
+      JSON.stringify(TOOL.input_schema),
+      "```",
+    ].join("\n");
+  }
+
+  // Claude's pasted answer (a ```json block or bare JSON, possibly with text around it) -> reading
+  function parse(text, opts = {}) {
+    const t = String(text || "");
+    const fenced = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    let body = fenced ? fenced[1] : t;
+    const a = body.indexOf("{"), b = body.lastIndexOf("}");
+    if (a < 0 || b <= a) throw new Error("That doesn't look like Claude's answer. Paste the whole JSON block it returned.");
+    let r;
+    try { r = JSON.parse(body.slice(a, b + 1)); } catch (e) { throw new Error("Claude's answer isn't valid JSON. Ask it to resend just the JSON block."); }
+    if (r && r.input && !r.nodes) r = r.input;  // tolerate a tool-call wrapper
+    for (const k of ["nodes", "members"]) if (!Array.isArray(r[k])) throw new Error(`Claude's answer has no ${k} list. Ask it to follow the JSON format.`);
+    for (const k of ["supports", "sections", "notes"]) if (!Array.isArray(r[k])) r[k] = [];
+    if (!r.system) r.system = "other";
+    if (!r.view) r.view = "elevation";
+    r.image = { width: opts.width || 1000, height: opts.height || 1000, scale: 1 };
+    r.problems = check(r, opts.shapes);
+    return r;
+  }
+
+  return { read, getKey, setKey, toMomentFrame, toGrid, normShape, MODEL, promptFor, parse, check, SYSTEM, TOOL };
 })();
+if (typeof window !== "undefined") window.SketchReader = SketchReaderLib;
+if (typeof module !== "undefined" && module.exports) module.exports = SketchReaderLib;
