@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+  <rect width="1000" height="700" fill="#fff"/>
+  <g stroke="#222" stroke-width="4" fill="none" stroke-linecap="round">
+    <path d="M150 600 L150 250 L500 150 L850 250 L850 600"/>
+    <path d="M150 250 L850 250"/>
+    <path d="M500 150 L500 250"/>
+  </g>
+  <g stroke="#555" stroke-width="1.5">
+    <path d="M150 640 L850 640"/><path d="M150 630 L150 650"/><path d="M850 630 L850 650"/>
+  </g>
+  <text x="500" y="670" font-family="Arial" font-size="24" text-anchor="middle" fill="#222">40'-0"</text>
+  <text x="80" y="430" font-family="Arial" font-size="24" fill="#222">20'</text>
+</svg>
