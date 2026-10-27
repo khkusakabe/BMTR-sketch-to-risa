@@ -32,3 +32,32 @@ Model: nodes `{id, x, y, support}` in drawing pixels (y down), members `{id, i, 
 - Nothing from anyone's employer.
 - The tool assists the engineer: never call a result acceptable, approved or compliant.
 - Branch per task, small commits, pull request into `main`.
+
+## Final step, every run: native RISA-3D file (.r3d)
+
+Added by: Chandler (@chandlerTKJSE)
+
+After the DXF and CSV export, write a native `.r3d` input file for the same model with `r3d.py` in this folder. The script follows RISA-3D Help, Appendix D, File Format (help.risa.com). This touches RISA export, so tell the export owner about any change.
+
+1. Build a model dict from the exported model:
+   - `nodes`: `(label, x, y, z)` in feet
+   - `bcs`: boundary conditions per node, as `"Reaction"`, `"Fixed"` or `""`
+   - `materials`: hot-rolled labels, `A992` or `A500 Gr.C`
+   - `secsets`: `(label, shape, design list, member type, material, A, Iyy, Izz, J)`
+   - `members`: `(label, i, j, rotation, section set)`
+2. Call `write_r3d(model)` and save the result as `<Model>.r3d` with CRLF line endings. Deliver it with the DXF and CSVs.
+
+Conventions:
+
+- **Labels:** use the sketch labels as section sets. RISA member labels must be unique, so number the members within each set (C1-1, C1-2, …).
+- **HSS names:** RISA writes HSS wall thickness in sixteenths (HSS5X5X3/8 becomes HSS5X5X6). `risa_shape()` does this.
+- **Section properties:** Iyy is the weak axis and Izz the strong axis.
+- **Boundary codes:** 4 = Reaction, 1 = Fixed, 0 = Free. Nodes are numbered from 1 in file order.
+
+Not written:
+
+- Loads and load combinations, because Appendix D does not document their syntax. Keep them in the CSVs.
+- `[GLOBAL_PARAMETERS]`, `[SHAPES_LIST]`, `[DATA_INTEGRITY_KEY]` and `[KEYID]`.
+- Member end releases, which are written as 0 (none) because Appendix D gives no code table for them.
+
+The engineer opens the `.r3d` in RISA and checks geometry, sections and supports. If RISA rejects the file, the DXF and CSVs are the fallback.
