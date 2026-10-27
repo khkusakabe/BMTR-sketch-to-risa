@@ -31,11 +31,12 @@
       ],
     },
     bldg: {
-      script: "Final Models/foundation-plan.js",
-      intro: "One level of columns on a grid (Chandler's Foundation Plan generator): corner, edge and interior columns, loads by tributary area.",
+      script: "Final Models/roof-framing.js",
+      intro: "Columns on a grid plus steel roof beams at the column tops (Chandler's Roof Framing generator). Perimeter end bays and interior lines are pinned, perimeter middle bays fixed. Loads by tributary area.",
       groups: [
         ["Grid", [["xSp", "X spacings", "ft, comma-separated", "list"], ["zSp", "Z spacings", "ft, comma-separated", "list"], ["H", "Column height", "ft"]]],
         ["Columns", [["C1", "Corner", "W", "W"], ["C3", "Edge", "W", "W"], ["C2", "Interior", "HSS", "HSS"], ["base", "Base", "", "base"]]],
+        ["Roof beams", [["B1", "Perimeter end bays", "W, pinned", "W"], ["B2", "Perimeter middle bays", "W, fixed", "W"], ["B3", "Interior lines", "W, pinned", "W"]]],
         ["Loads", [["D", "Dead", "psf"], ["L", "Live", "psf"], ["WX", "Wind X total", "kips"], ["WZ", "Wind Z total", "kips"], ["Cs", "Seismic coefficient", ""], ["Wsw", "Seismic weight", "kips, blank = D x area"]]],
         ["Seismic factors (ASD combinations)", [["rho", "rho", ""], ["SDS", "SDS", ""]]],
       ],
@@ -55,6 +56,16 @@
   $("meta").textContent = [p.number, MGStore.systemLabel(p), p.fileName && (p.fileName + (p.page ? " · page " + p.page : ""))].filter(Boolean).join("  ·  ");
 
   showPlan();
+  // 3D Building can switch to columns only (Foundation Plan generator): same inputs minus the roof beams
+  const columnsOnly = p.kind === "bldg" && new URLSearchParams(location.search).get("gen") === "columns";
+  if (columnsOnly) {
+    FORMS.bldg = {
+      ...FORMS.bldg,
+      script: "Final Models/foundation-plan.js",
+      intro: "Columns only on a grid (Chandler's Foundation Plan generator): corner, edge and interior columns, loads by tributary area.",
+      groups: FORMS.bldg.groups.filter(([g]) => g !== "Roof beams"),
+    };
+  }
   if (FORMS[p.kind]) buildGenerator(FORMS[p.kind]); else handOff();
 
   // ---------- plan sheet ----------
@@ -116,7 +127,7 @@
       : "";
     $("tool").innerHTML = `
       <h2>Build the RISA-3D model</h2>
-      <p class="note">${esc(spec.intro)}</p>${extra}
+      <p class="note">${esc(spec.intro)}</p>${p.kind === "bldg" ? switcher() : ""}${extra}
       <form id="mgForm">
         ${spec.groups.map(([g, fields]) => `<h3>${esc(g)}</h3><div class="grid">${fields.map(field).join("")}</div>`).join("")}
         <h3>RISA template (optional)</h3>
@@ -158,6 +169,13 @@
         $("result").textContent = "Couldn't build the model: " + err.message;
       }
     });
+  }
+
+  function switcher() {
+    const base = "generate.html?id=" + encodeURIComponent(p.id);
+    return columnsOnly
+      ? `<p class="note">Building columns only. <a href="${base}">Add roof framing</a></p>`
+      : `<p class="note">Building columns and roof framing. <a href="${base}&gen=columns">Columns only</a></p>`;
   }
 
   // ---------- hand-offs ----------
