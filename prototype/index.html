@@ -33,7 +33,19 @@
         <button class="mode" data-mode="delete" title="Click a node or member to remove it (X)">Delete</button>
       </div>
 
-      <h2 class="sub">Auto-detect</h2>
+      <h2 class="sub">Read the sketch</h2>
+      <p class="hint">Claude reads members, labels, sizes, dimensions, fixed-end triangles and base marks, then builds the model and sets the scale.</p>
+      <label class="field" id="keyField" hidden>
+        <span>Anthropic API key (kept in this browser only)</span>
+        <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+      </label>
+      <div class="row">
+        <button id="readSketch" class="btn primary">Read sketch</button>
+        <button id="changeKey" class="btn" hidden>API key</button>
+      </div>
+      <div id="readNotes" class="readnotes" hidden></div>
+
+      <h2 class="sub">Auto-detect lines</h2>
       <div class="modes">
         <button class="mode" data-mode="detect" title="Drag a box around the framing, or click once for the whole sheet (F)">Find lines</button>
       </div>
@@ -84,6 +96,7 @@
         <summary>How to use</summary>
         <ol>
           <li>Open a PDF page or a photo of a sketch.</li>
+          <li><b>Read sketch</b> builds the model from the sketch with Claude: nodes, labeled members, supports and scale. Check it, then fix anything with the tools below.</li>
           <li><b>Set scale:</b> click both ends of a known dimension and type its length, for example <code>24'-6"</code> or <code>7.5</code> (feet).</li>
           <li><b>Draw members:</b> click node to node. Clicks snap to nearby nodes. Hold Shift to lock horizontal or vertical. Right-click or Esc ends a chain.</li>
           <li><b>Supports:</b> click a node to cycle its restraint.</li>
@@ -126,6 +139,7 @@
     </aside>
   </main>
   <script src="../mg/store.js"></script>
+  <script src="../mg/sketch-reader.js"></script>
   <script src="detect.js"></script>
   <script src="export.js"></script>
   <script src="app.js"></script>

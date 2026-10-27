@@ -322,7 +322,8 @@ function draw() {
     const a = toScreen(nodeById(m.i)), b = toScreen(nodeById(m.j));
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     ctx.fillStyle = cMember;
-    ctx.fillText("M" + m.id, (a.x + b.x) / 2 + 4, (a.y + b.y) / 2 - 4);
+    ctx.fillText(m.label || "M" + m.id, (a.x + b.x) / 2 + 4, (a.y + b.y) / 2 - 4);
+    if (m.release) drawEnds(a, b, m.release, cMember);
   }
 
   for (const n of model.nodes) {
@@ -363,6 +364,22 @@ function draw() {
       ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI * 2); ctx.stroke();
     }
   }
+}
+
+// shaded triangle in the joint corner at each fixed end, as on the sketch
+function drawEnds(a, b, release, color) {
+  const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / L, uy = (b.y - a.y) / L;
+  let px = -uy, py = ux;
+  if (py < 0 || (py === 0 && px < 0)) { px = -px; py = -py; }  // into the joint corner, below the beam
+  ctx.save(); ctx.fillStyle = color;
+  for (const [p, s, fixed] of [[a, 1, release.i === "fixed"], [b, -1, release.j === "fixed"]]) {
+    if (!fixed) continue;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + s * ux * 12, p.y + s * uy * 12);
+    ctx.lineTo(p.x + px * 12, p.y + py * 12);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawSupport(p, type, color) {
@@ -736,15 +753,110 @@ refresh();
 setMode("draw");
 status(model.nodes.length ? "Restored your last model. Open the drawing again to keep tracing." : "Open a PDF or image to start.");
 
-// Opened from a Model Generator project (?project=<id>): load that project's plan sheet.
+// ---------- read the sketch with Claude ----------
+// Builds the model from a SketchReader result. Geometry comes from the feet values Claude read off
+// the dimensions; its pixel estimates only place the model over the drawing and set the scale.
+function applyReading(r) {
+  const ns = r.nodes || [];
+  if (!ns.length || !docImage) throw new Error("Claude didn't find any framing on this sheet.");
+  const fx = docImage.width / r.image.width, fy = docImage.height / r.image.height;
+  const px = ns.map((n) => ({ x: n.px_x * fx, y: n.px_y * fy }));
+  const mx = avg(ns.map((n) => n.x_ft)), my = avg(ns.map((n) => n.y_ft));
+  const cx = avg(px.map((p) => p.x)), cy = avg(px.map((p) => p.y));
+  // least-squares feet per pixel from the node spread in both directions
+  let num = 0, den = 0;
+  ns.forEach((n, k) => { num += (n.x_ft - mx) * (px[k].x - cx) - (n.y_ft - my) * (px[k].y - cy);
+    den += (px[k].x - cx) ** 2 + (px[k].y - cy) ** 2; });
+  let ftPerPx = den > 0 && num > 0 ? num / den : null;
+  if (!ftPerPx) {  // pixel guesses unusable: fit the framing to 60% of the sheet
+    const span = Math.max(...ns.map((n) => n.x_ft)) - Math.min(...ns.map((n) => n.x_ft)) || 1;
+    ftPerPx = span / (docImage.width * 0.6);
+  }
+  snapshot();
+  model.nodes = []; model.members = []; model.nextNode = 1; model.nextMember = 1;
+  model.ftPerPx = ftPerPx;
+  const byId = new Map();
+  for (const n of ns) {
+    const node = { id: model.nextNode++, x: cx + (n.x_ft - mx) / ftPerPx, y: cy - (n.y_ft - my) / ftPerPx, support: "" };
+    model.nodes.push(node); byId.set(n.id, node);
+  }
+  for (const sp of r.supports || []) { const n = byId.get(sp.node); if (n) n.support = sp.type; }
+  const count = {}, perSet = {};
+  for (const m of r.members || []) perSet[m.section_set] = (perSet[m.section_set] || 0) + 1;
+  for (const m of r.members || []) {
+    const a = byId.get(m.i), b = byId.get(m.j);
+    if (!a || !b || a === b) continue;
+    count[m.section_set] = (count[m.section_set] || 0) + 1;
+    const label = perSet[m.section_set] > 1 ? `${m.section_set}-${count[m.section_set]}` : m.section_set;
+    model.members.push({ id: model.nextMember++, i: a.id, j: b.id, label, set: m.section_set,
+      release: m.role === "column" ? null : { i: m.i_end, j: m.j_end } });
+  }
+  $("plane").value = r.view === "plan" ? "XZ" : "XY";
+  refresh();
+  showReadNotes(r);
+  setMode("move");
+  status(`Read ${model.nodes.length} nodes and ${model.members.length} members. Scale set from the sketch dimensions. Check the model, then export.`);
+}
+const avg = (a) => a.reduce((s, v) => s + v, 0) / (a.length || 1);
+
+function showReadNotes(r) {
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const li = (xs) => "<ul>" + xs.map((x) => `<li>${esc(x)}</li>`).join("") + "</ul>";
+  const sizes = (r.sections || []).map((s) => `${s.set} = ${s.shape}${s.struck && s.struck.length ? ` (struck ${s.struck.join(", ")})` : ""}`);
+  const ends = (r.members || []).filter((m) => m.role === "beam").map((m) => `${m.section_set} ${m.i_end}/${m.j_end}`);
+  let h = "";
+  if (sizes.length) h += `<b>Sizes</b>${li(sizes)}`;
+  if (ends.length) h += `<b>Beam ends</b>${li(ends)}`;
+  if ((r.problems || []).length) h += `<b class="warn">Check these</b>${li(r.problems)}`;
+  if ((r.notes || []).length) h += `<b>Claude's notes</b>${li(r.notes)}`;
+  $("readNotes").innerHTML = h;
+  $("readNotes").hidden = !h;
+}
+
+function syncKeyUI() {
+  const has = !!SketchReader.getKey();
+  $("keyField").hidden = has;
+  $("changeKey").hidden = !has;
+}
+$("changeKey").addEventListener("click", () => { $("keyField").hidden = false; $("apiKey").focus(); });
+$("readSketch").addEventListener("click", async () => {
+  const typed = $("apiKey").value.trim();
+  if (typed) { SketchReader.setKey(typed); $("apiKey").value = ""; }
+  if (!SketchReader.getKey()) { $("keyField").hidden = false; $("apiKey").focus(); return status("Add your Anthropic API key to read the sketch."); }
+  if (!docImage) return status("Open a sketch first.");
+  if (model.nodes.length && !confirm("Replace the current model with what Claude reads from the sketch?")) return;
+  const btn = $("readSketch");
+  btn.disabled = true;
+  status("Reading the sketch with Claude. This takes about half a minute...");
+  try {
+    const r = await SketchReader.read(docImage);
+    applyReading(r);
+    if (projectId) MGStore.update(projectId, { reading: r });
+  } catch (err) {
+    if (/key was rejected/.test(err.message)) SketchReader.setKey("");
+    status(err.message);
+  } finally {
+    btn.disabled = false;
+    syncKeyUI();
+  }
+});
+syncKeyUI();
+
+// Opened from a Model Generator project (?project=<id>): load that project's plan sheet, and
+// build the model from the sketch reading the workspace already made, if there is one.
+const projectId = new URLSearchParams(location.search).get("project");
 (async () => {
-  const pid = new URLSearchParams(location.search).get("project");
-  if (!pid || !window.MGStore) return;
-  const proj = MGStore.get(pid), file = await MGStore.getFile(pid);
+  if (!projectId || !window.MGStore) return;
+  const proj = MGStore.get(projectId), file = await MGStore.getFile(projectId);
   if (!file) return status("That project has no plan sheet saved in this browser.");
   await openFile(file);
   if (pdfDoc && proj && proj.page > 1 && proj.page <= pdfDoc.numPages) {
     $("pageNum").value = proj.page;
     await renderPdfPage(proj.page);
+  }
+  if (proj && proj.reading) {
+    try { applyReading(proj.reading); } catch (err) { status(err.message); }
+  } else {
+    status("Loaded. Press Read sketch to build the model from it, or set the scale and trace by hand.");
   }
 })();

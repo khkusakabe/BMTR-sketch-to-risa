@@ -9,7 +9,8 @@
    Inputs (any omitted value uses the default shown in DEFAULTS below):
      bay   bay width (ft)                 h1, h2  base to Level 2, Level 2 to roof (ft)
      C1, B1, B2  AISC W shapes (columns, roof beam, Level 2 beam)
-     base  "Fixed" (all 6 DOF) or "Pinned"; beam ends are fully fixed (drawn fixed in the sketch)
+     base  "Fixed" (all 6 DOF) or "Pinned"
+     B1ends, B2ends  "fixed" (shaded triangles in the sketch: no release) or "pinned" (BenPIN)
      deadB1, deadB2, liveB1, liveB2  uniform beam loads (klf, downward)
      windL2, windRoof, eqL2, eqRoof  lateral nodal loads at the left column (kips, +X)
      rho, SDS  seismic factors used in the ASD combinations (Ev = 0.2*SDS*D)
@@ -43,6 +44,8 @@ const LOAD = 76;                                   // "L" = load (not mass)
 const CAT = { DL: 1, LL: 2, ELX: 26, ELY: 27, ELZ: 28, WLX: 29, WLY: 30, WLZ: 31 };
 const BC = { Fixed: 1, Reaction: 4, "": 0 };
 const REL_FIXED = 0;
+// BenPIN (My and Mz released at both ends) = 3120, read from a RISA-saved file with a pinned beam.
+const RELEASE_CODES = { pinned: 3120 };
 const RT_RISA = { W12X35: 1.74, W12X22: 1.02, W16X31: 1.39 };   // from the RISA-saved file
 const HR_MAT_EXTRA = { "A500 Gr.C RECT": "29000.000000 11154.000000 0.300000 0.650000 0.490000 50.000000 -1 1.300000 62.000000 1.200000" };
 const FIX = ["Fixed", "Fixed", "Fixed", "Fixed", "Fixed", "Fixed"];
@@ -133,10 +136,11 @@ function writeR3d(template, model, opts = {}) {
   t = replaceBlock(t, "SHAPES_LIST", model.wShapes.map(wShapeRecord).concat(keep));
 
   const main = [], dp = [], brb = [], sup = [], det = [], calc = [];
-  for (const [lab, i, j, rot, ss] of model.members) {
+  for (const [lab, i, j, rot, ss, rel] of model.members) {
     const s = sets[sidx[ss]];
+    const relCode = rel === "pinned" ? RELEASE_CODES.pinned : REL_FIXED;
     main.push(`${q(lab)} ${q(s[2])} ${q(risaShape(s[1]))} ${nidx[i]} ${nidx[j]} 0 ${f6(rot)} ${sidx[ss]} 0 1 1 ` +
-      `${hrNames.indexOf(s[4])} ${REL_FIXED} 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 0 0 0 0 0 ` +
+      `${hrNames.indexOf(s[4])} ${relCode} 0.000000 0.000000 1 0 19 0 -1 -1 -1 1 0.000000 0 0 0 0 0 ` +
       `0.000000 0.000000 0.000000 0.000000 ${q("")} 0;`);
     dp.push(`${q(lab)} ${s[3]} ` + Array(11).fill("0.000000").join(" ") + " -1.000000 0 0 0 0.000000 -1.000000 " +
       "0.000000 0.000000 0.000000 0.000000 " + `${q("Optimize")} ${q("Optimize")} ` +
@@ -212,7 +216,7 @@ const wShapesFor = sets => [...new Set(sets.filter(s => !s[1].toUpperCase().star
 const baseCodes = b => b === "Pinned" ? PIN : FIX;
 
 /* ---------- Moment Frame: 1 bay, 2 levels (Level 2 beam B2, roof beam B1), C1 columns ---------- */
-const MF_DEFAULTS = { bay: 20, h1: 15, h2: 10, C1: "W12X35", B1: "W12X22", B2: "W16X31", base: "Fixed",
+const MF_DEFAULTS = { bay: 20, h1: 15, h2: 10, C1: "W12X35", B1: "W12X22", B2: "W16X31", base: "Fixed", B1ends: "fixed", B2ends: "fixed",
   deadB1: 0.5, deadB2: 0.8, liveB1: 0.4, liveB2: 1.0, windL2: 5.0, windRoof: 3.0, eqL2: 1.91, eqRoof: 1.99, rho: 1.0, SDS: 1.0 };
 function momentFrame(p) {
   p = { ...MF_DEFAULTS, ...p };
@@ -222,7 +226,8 @@ function momentFrame(p) {
     nodes: [["N1", 0, 0, 0], ["N2", p.bay, 0, 0], ["N3", 0, p.h1, 0], ["N4", p.bay, p.h1, 0], ["N5", 0, H, 0], ["N6", p.bay, H, 0]],
     bcs: [["N1", bc], ["N2", bc]],
     secsets, wShapes: wShapesFor(secsets),
-    members: [["C1-1", "N1", "N5", 0, "C1"], ["C1-2", "N2", "N6", 0, "C1"], ["B2", "N3", "N4", 0, "B2"], ["B1", "N5", "N6", 0, "B1"]],
+    members: [["C1-1", "N1", "N5", 0, "C1"], ["C1-2", "N2", "N6", 0, "C1"],
+      ["B2", "N3", "N4", 0, "B2", p.B2ends === "pinned" ? "pinned" : "fixed"], ["B1", "N5", "N6", 0, "B1", p.B1ends === "pinned" ? "pinned" : "fixed"]],
     blcs: [
       { desc: "Dead", cat: "DL", ygrav: -1, nodal: [], dist: [["B1", "Y", -p.deadB1, -p.deadB1], ["B2", "Y", -p.deadB2, -p.deadB2]] },
       { desc: "Live", cat: "LL", nodal: [], dist: [["B1", "Y", -p.liveB1, -p.liveB1], ["B2", "Y", -p.liveB2, -p.liveB2]] },

@@ -138,3 +138,9 @@ td:first-child, th:first-child { text-align: left; }
   .layout { grid-template-columns: 1fr; grid-template-rows: auto 60vh auto; }
   .tools, .out { border: 0; border-bottom: 1px solid var(--line); }
 }
+
+.hint { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+.readnotes { margin-top: 8px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 8px; max-height: 220px; overflow: auto; }
+.readnotes b { color: var(--text); }
+.readnotes ul { margin: 4px 0 6px; padding-left: 18px; }
+.readnotes .warn { color: var(--support); }

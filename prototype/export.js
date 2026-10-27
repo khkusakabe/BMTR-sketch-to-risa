@@ -29,7 +29,7 @@ window.RisaExport = (() => {
   }
 
   function members(model) {
-    return model.members.map((m) => ({ label: "M" + m.id, i: "N" + m.i, j: "N" + m.j }));
+    return model.members.map((m) => ({ label: m.label || "M" + m.id, i: "N" + m.i, j: "N" + m.j }));
   }
 
   // RISA-3D Boundary Conditions use "Reaction" for a restrained direction.
@@ -63,7 +63,8 @@ window.RisaExport = (() => {
     return parts.join("\r\n").replace(/\t/g, ",");
   }
 
-  // DXF R12: one LINE per member on layer MEMBERS, in feet, drawn in the X-Y plane
+  // DXF R12: one LINE per member, in feet, drawn in the X-Y plane. Layer = section set read from
+  // the sketch (C1, B1...), or MEMBERS for hand-drawn members.
   function dxf(model, opts) {
     const s = model.ftPerPx || 1;
     const byId = new Map(model.nodes.map((n) => [n.id, n]));
@@ -73,7 +74,7 @@ window.RisaExport = (() => {
     const out = ["0", "SECTION", "2", "ENTITIES"];
     for (const m of model.members) {
       const [x1, y1] = P(byId.get(m.i)), [x2, y2] = P(byId.get(m.j));
-      out.push("0", "LINE", "8", "MEMBERS", "10", x1, "20", y1, "30", 0, "11", x2, "21", y2, "31", 0);
+      out.push("0", "LINE", "8", m.set || "MEMBERS", "10", x1, "20", y1, "30", 0, "11", x2, "21", y2, "31", 0);
     }
     out.push("0", "ENDSEC", "0", "EOF");
     return out.join("\r\n") + "\r\n";

@@ -21,10 +21,11 @@
   const FORMS = {
     frame: {
       script: "Final Models/moment-frame.js",
-      intro: "Two-story, one-bay steel moment frame (Chandler's Moment Frame generator). Beam ends are fixed; base is as selected.",
+      intro: "Two-story, one-bay steel moment frame (Chandler's Moment Frame generator). Beam ends are fixed where the sketch marks them fixed, otherwise pinned; base is as selected.",
       groups: [
         ["Geometry", [["bay", "Bay width", "ft"], ["h1", "Base to Level 2", "ft"], ["h2", "Level 2 to roof", "ft"]]],
         ["Sections", [["C1", "Columns", "W", "W"], ["B2", "Level 2 beam", "W", "W"], ["B1", "Roof beam", "W", "W"], ["base", "Base", "", "base"]]],
+        ["Beam ends (shaded triangle in the sketch = fixed)", [["B2ends", "Level 2 beam ends", "", "ends"], ["B1ends", "Roof beam ends", "", "ends"]]],
         ["Beam loads (downward)", [["deadB2", "Dead, Level 2", "klf"], ["liveB2", "Live, Level 2", "klf"], ["deadB1", "Dead, roof", "klf"], ["liveB1", "Live, roof", "klf"]]],
         ["Lateral loads at left column (+X)", [["windL2", "Wind, Level 2", "kips"], ["windRoof", "Wind, roof", "kips"], ["eqL2", "Seismic, Level 2", "kips"], ["eqRoof", "Seismic, roof", "kips"]]],
         ["Seismic factors (ASD combinations)", [["rho", "rho", ""], ["SDS", "SDS", ""]]],
@@ -55,7 +56,8 @@
   $("title").textContent = p.name;
   $("meta").textContent = [p.number, MGStore.systemLabel(p), p.fileName && (p.fileName + (p.page ? " · page " + p.page : ""))].filter(Boolean).join("  ·  ");
 
-  showPlan();
+  let planSource = null;              // the rendered plan sheet (canvas or img), for the sketch reader
+  const planReady = showPlan();
   // 3D Building can switch to columns only (Foundation Plan generator): same inputs minus the roof beams
   const columnsOnly = p.kind === "bldg" && new URLSearchParams(location.search).get("gen") === "columns";
   if (columnsOnly) {
@@ -83,17 +85,20 @@
         const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
         await pg.render({ canvasContext: x, viewport: vp }).promise;
         box.replaceChildren(c);
+        planSource = c;
       } else {
         const img = new Image();
         img.src = URL.createObjectURL(file);
         img.alt = "Uploaded plan sheet";
+        await img.decode();
         box.replaceChildren(img);
+        planSource = img;
       }
     } catch (err) {
       box.innerHTML = `<span class="meta">Could not show this file: ${esc(err.message)}</span>`;
     }
     $("planActions").innerHTML =
-      `<a class="btn" href="prototype/?project=${encodeURIComponent(p.id)}">Trace or find lines on this sheet</a>`;
+      `<a class="btn" href="prototype/?project=${encodeURIComponent(p.id)}">Open in the tracer</a>`;
   }
 
   // ---------- in-browser generators ----------
@@ -118,6 +123,7 @@
       if (type === "W") control = `<select name="${k}">${opts(S.Wlist, v)}</select>`;
       else if (type === "HSS") control = `<select name="${k}">${opts(S.HSSlist, v)}</select>`;
       else if (type === "base") control = `<select name="${k}">${opts(["Fixed", "Pinned"], v)}</select>`;
+      else if (type === "ends") control = `<select name="${k}">${opts(["fixed", "pinned"], v)}</select>`;
       else if (type === "list") control = `<input name="${k}" value="${esc((v || []).join(", "))}" inputmode="decimal">`;
       else control = `<input name="${k}" value="${v === null || v === undefined ? "" : esc(v)}" inputmode="decimal">`;
       return `<label class="f">${esc(label)}${unit ? ` <span>${esc(unit)}</span>` : ""}${control}</label>`;
@@ -128,6 +134,7 @@
     $("tool").innerHTML = `
       <h2>Build the RISA-3D model</h2>
       <p class="note">${esc(spec.intro)}</p>${p.kind === "bldg" ? switcher() : ""}${extra}
+      ${p.fileName ? readerCard() : ""}
       <form id="mgForm">
         ${spec.groups.map(([g, fields]) => `<h3>${esc(g)}</h3><div class="grid">${fields.map(field).join("")}</div>`).join("")}
         <h3>RISA template (optional)</h3>
@@ -140,6 +147,8 @@
       </form>
       ${moreTools()}`;
 
+    if (p.fileName) wireReader(spec, S);
+
     $("mgForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target, inputs = {};
@@ -147,7 +156,7 @@
         for (const [k, , , type] of fields) {
           const raw = form.elements[k].value.trim();
           if (type === "list") inputs[k] = raw.split(/[,\s]+/).filter(Boolean).map(Number);
-          else if (type === "W" || type === "HSS" || type === "base") inputs[k] = raw;
+          else if (type === "W" || type === "HSS" || type === "base" || type === "ends") inputs[k] = raw;
           else inputs[k] = raw === "" ? null : Number(raw);
         }
       }
@@ -167,6 +176,78 @@
         $("result").textContent = `Downloaded ${name}${nodes ? ` (${nodes} nodes)` : ""}. Open it in RISA-3D and check geometry, sections, loads and supports.`;
       } catch (err) {
         $("result").textContent = "Couldn't build the model: " + err.message;
+      }
+    });
+  }
+
+  // ---------- read the sketch with Claude ----------
+  function readerCard() {
+    const has = !!SketchReader.getKey();
+    return `<div class="card" id="reader">
+      <b>Read the sketch</b>
+      <div class="note">Claude reads the members, labels, size table, dimensions, fixed-end triangles and base marks on this sheet and fills in the inputs below. Check every value before you download.</div>
+      <div id="keyRow" ${has ? "hidden" : ""} style="margin-top:10px">
+        <label class="f">Anthropic API key <span>kept in this browser only; the sheet goes straight from this page to Anthropic</span>
+          <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" type="button" id="readBtn">Read the sketch</button>
+        <button class="btn" type="button" id="keyBtn" ${has ? "" : "hidden"}>Change API key</button>
+      </div>
+      <div class="ok" id="readOut" aria-live="polite">${p.reading ? readSummary(p.reading, p.readingWarnings || []) : ""}</div>
+    </div>`;
+  }
+
+  function readSummary(r, warnings) {
+    const li = (xs) => xs.map((x) => `<li>${esc(x)}</li>`).join("");
+    const sizes = (r.sections || []).map((s) => `${s.set} = ${s.shape}${s.struck && s.struck.length ? ` (struck: ${s.struck.join(", ")})` : ""}`);
+    const fixed = (r.members || []).filter((m) => m.role === "beam").map((m) => `${m.section_set}: ${m.i_end} / ${m.j_end} ends`);
+    const sup = (r.supports || []).map((s) => `${s.node} ${s.type}`);
+    const flags = [...(r.problems || []), ...warnings];
+    return `<div class="note"><b>Read ${(r.nodes || []).length} nodes and ${(r.members || []).length} members</b> (${esc(r.system.replace(/_/g, " "))}).</div>
+      <ul class="note" style="margin:6px 0 0;padding-left:20px">
+        ${sizes.length ? `<li>Sizes: ${esc(sizes.join("; "))}</li>` : ""}
+        ${fixed.length ? `<li>Beam ends: ${esc(fixed.join("; "))}</li>` : ""}
+        ${sup.length ? `<li>Supports: ${esc(sup.join(", "))}</li>` : ""}
+        ${(r.dimensions_read || []).length ? `<li>Dimensions: ${esc(r.dimensions_read.join(", "))}</li>` : ""}
+      </ul>
+      ${flags.length ? `<div class="note" style="margin-top:8px;color:#9a3412"><b>Check these</b><ul style="margin:4px 0 0;padding-left:20px">${li(flags)}</ul></div>` : ""}
+      ${(r.notes || []).length ? `<div class="note" style="margin-top:8px"><b>Claude's notes</b><ul style="margin:4px 0 0;padding-left:20px">${li(r.notes)}</ul></div>` : ""}`;
+  }
+
+  function wireReader(spec, S) {
+    const out = $("readOut"), form = $("mgForm");
+    $("keyBtn").addEventListener("click", () => { $("keyRow").hidden = false; $("apiKey").focus(); });
+    $("readBtn").addEventListener("click", async () => {
+      const typed = $("apiKey").value.trim();
+      if (typed) SketchReader.setKey(typed);
+      if (!SketchReader.getKey()) { $("keyRow").hidden = false; $("apiKey").focus(); out.textContent = "Add your Anthropic API key to read the sketch."; return; }
+      await planReady;
+      if (!planSource) { out.textContent = "The plan sheet isn't loaded in this browser, so there's nothing to read."; return; }
+      const btn = $("readBtn");
+      btn.disabled = true;
+      out.textContent = "Reading the sketch. This takes about half a minute...";
+      try {
+        const shapes = new Set([...S.Wlist, ...S.HSSlist]);
+        const r = await SketchReader.read(planSource, { hint: MGStore.systemLabel(p), shapes });
+        const { inputs, warnings } = p.kind === "frame" ? SketchReader.toMomentFrame(r) : SketchReader.toGrid(r);
+        const filled = [];
+        for (const [k, v] of Object.entries(inputs)) {
+          const el = form.elements[k];
+          if (!el) continue;
+          if (el.tagName === "SELECT" && ![...el.options].some((o) => o.value === v)) { warnings.push(`${k} = ${v} isn't in the shape list; left as ${el.value}.`); continue; }
+          el.value = Array.isArray(v) ? v.join(", ") : v;
+          filled.push(k);
+        }
+        $("keyRow").hidden = true; $("keyBtn").hidden = false; $("apiKey").value = "";
+        MGStore.update(p.id, { reading: r, readingWarnings: warnings, status: "Read" });
+        p.reading = r;
+        out.innerHTML = readSummary(r, warnings) + `<div class="note" style="margin-top:8px">Filled ${filled.length} inputs from the sketch. Loads aren't on the sketch, so enter them below.</div>`;
+      } catch (err) {
+        if (/key was rejected/.test(err.message)) { SketchReader.setKey(""); $("keyRow").hidden = false; $("keyBtn").hidden = true; }
+        out.textContent = err.message;
+      } finally {
+        btn.disabled = false;
       }
     });
   }

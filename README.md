@@ -12,10 +12,10 @@ The home screen is the **Model Generator**. Start a project, upload the plan she
 
 | System type | Tool | Runs |
 |---|---|---|
-| **2D Frame** | Moment Frame generator: bay, story heights, W-shapes, base, loads, then download a `.r3d` | In the browser |
+| **2D Frame** | Moment Frame generator: **Read the sketch** with Claude to fill the bay, story heights, W-shapes, beam-end fixity and base, add loads, then download a `.r3d` | In the browser (sketch reading needs your Anthropic API key) |
 | **3D Building** | Roof Framing generator: column grid plus roof beams (or columns only), loads by tributary area, then download a `.r3d` | In the browser |
 | **2D Truss** | Truss to RISA: Fink, Howe/Pratt, flat-chord or mono templates, photo straightening, node editing, then export a `.r3d`. The Claude drawing reader runs on its claude.ai version | In the browser |
-| **3D Misc Frame** | Browser tracer: find lines automatically or trace node to node, then export DXF or RISA spreadsheet rows | In the browser |
+| **3D Misc Frame** | Browser tracer: **Read sketch** with Claude builds labeled members, supports and scale from the sheet; or find lines automatically or trace node to node; then export DXF or RISA spreadsheet rows | In the browser |
 
 For reading a sketch or a PDF with Ai, the workspace also links:
 
@@ -60,7 +60,7 @@ Web Page/                      Chandler's original mockups
 - **Generators from the command line:** `node "Final Models/moment-frame.js" inputs.json out.r3d`. See the header of each file for its inputs.
 - **Afshin's app:** see [`app/README.md`](app/README.md). It needs Python, a Claude login or API key, and RISA-3D.
 
-Projects created on the site are saved in your own browser only. Nothing is uploaded.
+Projects created on the site are saved in your own browser only. The one exception is **Read the sketch**: it sends the plan sheet image straight from your browser to the Anthropic API with your own API key, which is stored in your browser only (`mg/sketch-reader.js`). Claude reads the sketch with the Model Creator nomenclature: pen lines are members, a shaded triangle at a beam end is a fixed connection (otherwise pinned), line over hatch at a base is a fixed base, labels are section sets, the size table assigns shapes (struck sizes are void), and dimension strings give the geometry.
 
 ## Contributing
 
