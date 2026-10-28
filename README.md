@@ -1,6 +1,6 @@
 # Sketch to RISA
 
-**Team BMTR, NCSEA Big Build SE Hackathon, 2026-10-27.**
+**Team BMTR, NCSEA Big Build SE Hackathon, 2026-10-27.** A working prototype built in one day. See [Known issues](KNOWN-ISSUES.md) for what is still rough.
 
 Turn a framing sketch, a PDF plan or a truss drawing into a starting RISA-3D model, instead of retyping every node and member.
 
@@ -28,21 +28,22 @@ The generators write RISA-3D v23 files with nodes, supports, AISC sections, memb
 
 | Piece | Where | By |
 |---|---|---|
-| Model Generator home screen and New Project page | `index.html`, `new-project.html` (originals in `Web Page/`) | Chandler |
+| Model Generator home screen and New Project page | `index.html`, `new-project.html` (originals in `docs/mockups/`) | Chandler |
 | RISA-3D generators: moment frame, foundation plan, roof framing | `Final Models/` | Chandler |
-| Workflow guides: moment frame from a sketch, wall model from a floor plan | `sketch-to-risa-moment-frame.md`, `risa-wall-model-from-plan.md` | Chandler |
+| Workflow guides: moment frame from a sketch, wall model from a floor plan | `docs/sketch-to-risa-moment-frame.md`, `docs/risa-wall-model-from-plan.md` | Chandler |
 | Worked RISA packages: Model 1 moment frame, Model 3 column plan | `models/` | Chandler |
 | `.r3d` writer from RISA's published file format | `.claude/skills/sketch-to-risa-dev/r3d.py` | Chandler |
 | Sketch and PDF reader with a Claude agent, framing editor, RISA launcher | `app/` | Afshin |
 | Floor-plan-columns Claude skill | `.claude/skills/floor-plan-columns/` | Philip Yu |
 | Truss to RISA (with photo straightening) | `truss/`, and on [claude.ai](https://claude.ai/artifact/4N6NXAs1sMhQWdEN2XEZef) with the Claude drawing reader | Olu |
 | Project workspace that ties it together, browser tracer with line detection | `generate.html`, `mg/`, `prototype/` | Kei |
-| Team notes, roster and shared skills | `team.html`, `team.json`, `.claude/skills/` | Team |
+| Team notes from the day, roster and shared skills | `team.html`, `team.json`, `.claude/skills/` | Team |
 
 ## Repo map
 
 ```
 index.html, new-project.html   Model Generator: projects home and New Project
+how-to.html                    How to use (printable handout)
 generate.html, mg/             Project workspace: runs the generators, hands off to the other tools
 Final Models/                  RISA-3D generators (plain JavaScript, browser or Node)
 app/                           Afshin's local app (Python server, Claude agents, .r3d writer)
@@ -51,8 +52,8 @@ prototype/                     Browser tracer: line detection, hand tracing, DXF
 truss/                         Olu's Truss to RISA
 models/                        Worked RISA packages (Model 1, Model 3)
 .claude/skills/                Shared Claude Code skills
-tools.html, team.html          All tools page and team notes
-Web Page/                      Chandler's original mockups
+tools.html, team.html          All tools page and the team's notes from the day
+docs/                          Workflow guides, Chandler's original mockups, hackathon hosting notes
 ```
 
 ## Run it
@@ -66,7 +67,7 @@ Projects created on the site are saved in your own browser only. To have Claude 
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). To get push access, open a [join request](https://github.com/khkusakabe/BMTR-sketch-to-risa/issues/new?title=Add%20me%20to%20the%20repo) or send Kei your GitHub username.
+Ideas and fixes are welcome. Open an issue, or fork the repo and send a pull request. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Sources
 

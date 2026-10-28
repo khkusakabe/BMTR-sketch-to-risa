@@ -149,7 +149,7 @@ Spot-check a few shapes before using the data: W12X35 has Ix = 285, W16X31 has I
 
 ## Example: Model 1 (from sketch)
 
-![Model 1 hand sketch: 2-D moment frame with C1 columns, B1 and B2 beams, fixed connections and fixed bases](samples/model1-sketch.png)
+![Model 1 hand sketch: 2-D moment frame with C1 columns, B1 and B2 beams, fixed connections and fixed bases](../samples/model1-sketch.png)
 
 *Source sketch. The photo has been cropped and thresholded to black and white so the pen work reads clearly.*
 

@@ -1,32 +1,24 @@
-# Working on Sketch to RISA
+# Contributing to Sketch to RISA
 
-Start with the team notes page: https://khkusakabe.github.io/BMTR-sketch-to-risa/team.html (source: `team.html`). It covers what's done, how the code fits together, and the open tasks.
+This started as a one-day hackathon prototype (team BMTR, NCSEA Big Build SE Hackathon, 2026-10-27). Ideas, bug reports and fixes are welcome.
 
-## Hosting the team app
+## How to help
 
-Afshin's app goes at the site root, and the first prototype lives in `prototype/`. Step by step: [HOSTING.md](HOSTING.md).
+1. Look at [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md) or open an issue describing what you see.
+2. Fork the repo, make a branch, and send a pull request.
+3. To run it locally, serve the repo folder with `python -m http.server 8080` and open http://localhost:8080. There's no build step.
+4. `main` is the live site, so keep it working.
 
-## Quick version
+## Where things are
 
-1. Send Kei your GitHub username to get a collaborator invite.
-2. Clone, then run `python -m http.server 8080` and open http://localhost:8080. There's no build step.
-3. Pick an open issue and assign yourself.
-4. Work on a branch (`git switch -c <task>`), commit small, and open a pull request.
-5. `main` is the live site. Every merge to `main` goes live within a minute or two, so keep it working.
-
-## Add yourself and your skills
-
-- **Roster:** add an entry to `team.json` with your name, GitHub username, skills and what you're working on. It shows on the team page. The pencil icon on GitHub works fine.
-- **Claude Code skills:** add `.claude/skills/<skill-name>/SKILL.md`. See `.claude/skills/README.md` for the template. Everyone who opens the repo in Claude Code gets it.
-
-## Who owns what
-
-- `prototype/export.js` (RISA export) has an owner. Coordinate with them before changing it.
-- In the prototype, line detection is in `prototype/detect.js` and the rest is in `prototype/app.js`.
+- The project workspace is `generate.html` and `mg/`. The RISA-3D generators are in `Final Models/`.
+- In the tracer, line detection is in `prototype/detect.js` and the rest is in `prototype/app.js`.
+- Claude Code skills go in `.claude/skills/<skill-name>/SKILL.md`. See `.claude/skills/README.md` for the template.
 
 ## Ground rules
 
-- The prototype stays plain HTML, CSS and JavaScript. If you add a library to it, load a pinned version from cdnjs.
+- Plain HTML, CSS and JavaScript in the browser tools. If you add a library, load a pinned version from cdnjs.
 - Public sources only. Name the paper or doc a method comes from in a comment.
 - Nothing from your employer: no internal code, templates, standards or project data.
-- The tool assists an engineer and shows its work. Don't describe results as acceptable, approved or compliant.
+- No personal details. Before adding a RISA file, open it in a text editor and clear COMPANY_NAME, DESIGNER_NAME and CLOUDID, which RISA fills from your own PC and account.
+- The tools assist an engineer and show their work. Don't describe results as acceptable, approved or compliant.

@@ -8,7 +8,7 @@ description: How the Sketch to RISA web app is built and how to change it safely
 Added by: Kei (@khkusakabe)
 
 ## Shape of the repo
-The team app (Afshin's) lives at the repo root; see `HOSTING.md`. The first prototype described below lives in `prototype/`, so the paths below are relative to it. `team.html`, `team.json` and `.claude/` stay at the root.
+The team app (Afshin's) lives at the repo root; see `docs/hackathon-hosting.md`. The first prototype described below lives in `prototype/`, so the paths below are relative to it. `team.html`, `team.json` and `.claude/` stay at the root.
 
 Plain HTML, CSS and JavaScript, no build step, served by GitHub Pages from `main` (every merge goes live).
 

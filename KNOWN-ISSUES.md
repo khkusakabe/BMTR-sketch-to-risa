@@ -1,6 +1,6 @@
 # Known issues
 
-What we know needs fixing or checking, as of 2026-10-27 4:12 PM. Put your name on one before you start, so two people don't fix the same thing.
+What we know needs fixing or checking, as of the end of the hackathon (2026-10-27). The Owner column is who on the team knows that piece best.
 
 | # | Issue | Where | Suggested fix | Owner |
 |---|---|---|---|---|
@@ -13,11 +13,11 @@ What we know needs fixing or checking, as of 2026-10-27 4:12 PM. Put your name o
 | 7 | **Two RISA templates and `Concept Plan.pdf` are held out of the repo.** The templates carry RISA staff emails, and the PDF may be a real project. (The truss tool's template is in, with its email blanked.) | Afshin's app, Philip's skill | Confirm with the organizers whether they handed these out. Chandler's generators already use a clean template, so Afshin's app could switch to his `r3d.py`. | Afshin |
 | 8 | **Afshin's app needs a RISA template to export.** Its template is held back (see 7). | `app/risa_r3d.py` | Use Chandler's clean template, or his `r3d.py`, for export. | Afshin |
 | 9 | **Afshin's app requirements aren't pinned** and haven't been installed and run on a clean PC. | `app/requirements.txt` | Run it once on a fresh machine and pin the versions that work. | Afshin |
-| 10 | **Two copies of the home screen.** The live pages are at the repo root. Chandler's originals are in `Web Page/`. | `index.html`, `new-project.html`, `Web Page/` | Edit the root files. Keep or retire `Web Page/` once Chandler confirms. | Chandler |
+| 10 | **Two copies of the home screen.** The live pages are at the repo root. Chandler's originals are in `docs/mockups/`. | `index.html`, `new-project.html`, `docs/mockups/` | Edit the root files. Keep or retire `docs/mockups/` once Chandler confirms. | Chandler |
 | 11 | **One table on the team notes page scrolls sideways on phones.** All other pages fit. | `team.html` | Let the table scroll inside its own box. | |
 | 12 | **Three copies of the W-shape table** (Afshin, Philip, Chandler). | `app/templates/`, `.claude/skills/floor-plan-columns/assets/`, `Final Models/` | Agree on one source later. Not needed for the demo. | |
 
-## Fixed today
+## Fixed during the hackathon
 
 - Chandler's home screen is the site root, and New Project uploads, saves and routes to each tool.
 - 2D Frame and 3D Building build a `.r3d` in the browser from Chandler's generators.
